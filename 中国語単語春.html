@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="中国語単語帳">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="manifest" id="mf">
+<title>『話す中国語1』単語帳</title>
+<style>
+  :root{--ink:#15202b;--ink-soft:#4a5a68;--paper:#f7f4ee;--card:#fff;
+    --jade:#1f7a5e;--seal:#b83a2e;--amber:#c98a12;--line:#dcd6c9}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);
+    font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+    -webkit-text-size-adjust:100%;padding:0 0 48px}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px}
+  header{padding:12px 0 10px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:var(--paper);z-index:10}
+  h1{font-size:15px;letter-spacing:.04em;font-weight:700}
+  h1 small{font-size:10px;color:var(--ink-soft);font-weight:400;letter-spacing:.08em;margin-left:6px}
+  .tabs{display:flex;gap:6px;margin-top:8px}
+  .tabs button{flex:1;padding:8px 0;font-size:13px}
+  select,button,input{font:inherit;font-size:12.5px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);border-radius:8px;padding:6px 8px}
+  button,select{cursor:pointer}
+  button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .controls{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:8px}
+  .controls span{font-size:11px;color:var(--ink-soft)}
+  .meter{font-size:11px;color:var(--ink-soft);letter-spacing:.06em;margin-top:8px;display:flex;justify-content:space-between;gap:8px}
+  .bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:5px;display:flex}
+  .bar i{display:block;height:100%;transition:width .3s}
+  .bar .g{background:var(--jade)}.bar .a{background:var(--amber)}
+
+  .stage{padding:20px 16px 0;max-width:680px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;min-height:290px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:40px 20px 30px;user-select:none;position:relative;touch-action:pan-y;will-change:transform}
+  #card{cursor:pointer}
+  .card.snap{transition:transform .22s ease,opacity .22s ease}
+  .tag{position:absolute;top:12px;left:14px;font-size:11px;letter-spacing:.1em;color:var(--seal);
+    border:1px solid currentColor;border-radius:4px;padding:1px 6px}
+  .cardtools{position:absolute;top:8px;right:8px;display:flex;gap:2px}
+  .icon{border:none;background:none;font-size:19px;line-height:1;color:var(--line);padding:5px 7px;border-radius:8px;cursor:pointer}
+  .icon.on{color:#e0a400}
+  .icon.spk{color:var(--ink-soft);font-size:17px}
+  .icon.spk.playing{color:var(--jade)}
+  .stamp{position:absolute;top:52px;font-size:13px;font-weight:700;letter-spacing:.14em;
+    border:2px solid currentColor;border-radius:8px;padding:4px 10px;opacity:0;pointer-events:none}
+  #stampR{right:18px;color:var(--jade);transform:rotate(9deg)}
+  #stampL{left:18px;color:var(--seal);transform:rotate(-9deg)}
+  .hanzi{font-size:62px;line-height:1.2;font-weight:600;letter-spacing:.04em}
+  .pinyin{font-size:26px;color:var(--jade);margin-top:14px;font-family:"Times New Roman",serif}
+  .pos{font-size:12px;color:var(--ink-soft);margin-top:12px;letter-spacing:.12em}
+  .mean{font-size:20px;margin-top:8px;line-height:1.5}
+  .hint{font-size:11px;color:var(--ink-soft);margin-top:18px;letter-spacing:.06em;min-height:14px}
+  .hidden{visibility:hidden}
+  .sd{color:var(--seal);text-decoration:underline dotted 2px;text-underline-offset:6px}
+  .shapes{margin-top:16px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+  .chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--paper)}
+  .chip b{color:var(--seal)}
+  .nav{display:flex;gap:8px;margin:12px auto 0;max-width:680px;padding:0 16px}
+  .nav button{flex:1;padding:12px 0;font-size:14px}
+  .nav button.know{border-color:var(--jade);color:var(--jade)}
+  .nav button.again{border-color:var(--seal);color:var(--seal)}
+  .nav button.prev{flex:.7;color:var(--ink-soft)}
+
+  /* quiz */
+  .qbig{font-size:58px;font-weight:600;letter-spacing:.04em}
+  .qsub{font-size:14px;color:var(--ink-soft);margin-top:10px;letter-spacing:.14em;font-family:"Times New Roman",serif}
+  .qmean{font-size:13px;color:var(--ink-soft);margin-top:4px}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px;width:100%;max-width:380px}
+  .opts button{padding:13px 4px;font-size:19px;font-family:"Times New Roman",serif;color:var(--jade)}
+  .opts button.ok{background:var(--jade);color:#fff;border-color:var(--jade)}
+  .opts button.ng{background:var(--seal);color:#fff;border-color:var(--seal)}
+  .fb{font-size:13px;margin-top:16px;min-height:18px;letter-spacing:.04em}
+  .fb.ok{color:var(--jade)}.fb.ng{color:var(--seal)}
+  #wInput{width:100%;max-width:340px;margin-top:18px;text-align:center;font-size:22px;
+    font-family:"Times New Roman",serif;padding:10px;letter-spacing:.05em}
+  .wtip{font-size:11px;color:var(--ink-soft);margin-top:8px;line-height:1.6}
+
+  /* menu / grammar */
+  .summary{display:flex;gap:8px;margin-top:14px}
+  .stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+  .stat b{display:block;font-size:22px;font-weight:600}
+  .stat span{font-size:10px;color:var(--ink-soft);letter-spacing:.1em}
+  .stat.g b{color:var(--jade)}.stat.a b{color:var(--amber)}
+  h2{font-size:11px;letter-spacing:.14em;color:var(--ink-soft);font-weight:500;margin:20px 0 6px}
+  .lrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .lrow .name{font-size:14px;width:52px;flex:none}
+  .lrow .bar{flex:1;margin:0}
+  .lrow .pct{font-size:11px;color:var(--ink-soft);width:52px;text-align:right;flex:none}
+  .wrow{display:flex;align-items:flex-start;gap:8px;padding:10px 2px;border-bottom:1px solid var(--line)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none;margin-top:7px}
+  .dot.k{background:var(--jade)}.dot.s{background:var(--amber)}
+  .wmain{flex:1;min-width:0;cursor:pointer}
+  .wtop{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .wtop .h{font-size:19px;font-weight:600}
+  .wtop .p{font-size:13px;color:var(--jade);font-family:"Times New Roman",serif}
+  .wtop .l{font-size:10px;color:var(--seal);border:1px solid currentColor;border-radius:3px;padding:0 4px}
+  .wtop .ps{font-size:10px;color:var(--ink-soft);letter-spacing:.08em}
+  .wsub{font-size:12px;color:var(--ink-soft);margin-top:3px;line-height:1.45}
+  .wsub em{font-style:normal;color:var(--seal)}
+  .wrow .icon{font-size:16px;padding:4px 5px;flex:none}
+  .gcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px}
+  .gcard h3{font-size:15px;font-weight:700;letter-spacing:.02em}
+  .gcard .gl{font-size:10px;color:var(--seal);border:1px solid currentColor;border-radius:3px;padding:0 4px;margin-right:6px}
+  .gcard p{font-size:13px;line-height:1.75;color:var(--ink-soft);margin-top:7px}
+  .gcard p b{color:var(--ink)}
+  .gex{border-left:3px solid var(--line);padding:6px 0 6px 10px;margin-top:9px;display:flex;align-items:flex-start;gap:6px}
+  .gex .t{flex:1;min-width:0}
+  .gex .c{font-size:16px}
+  .gex .y{font-size:12px;color:var(--jade);font-family:"Times New Roman",serif;margin-top:2px}
+  .gex .j{font-size:12px;color:var(--ink-soft);margin-top:2px}
+  .fixnote{background:#fffbe9;border:1px solid #e8dda8;border-radius:8px;padding:10px 12px;
+    font-size:11.5px;line-height:1.7;margin-top:16px;color:#5c4a1a}
+  .novoice{background:#fdeeed;border:1px solid #e8b8b3;color:#7a2a22;border-radius:8px;
+    padding:8px 12px;font-size:11.5px;line-height:1.6;margin-top:8px;display:none}
+  #search{width:100%;margin-top:6px;font-size:13px}
+  @media(max-width:430px){.hanzi{font-size:52px}.qbig{font-size:48px}.pinyin{font-size:22px}}
+  @media(prefers-reduced-motion:reduce){.card,.card.snap{transition:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>『話す中国語1』単語帳<small>05–22課</small></h1>
+  <div class="tabs">
+    <button id="tabStudy" class="on">学習</button>
+    <button id="tabGram">文法</button>
+    <button id="tabMenu">一覧</button>
+  </div>
+
+  <div id="studyCtl">
+    <div class="controls">
+      <select id="mode">
+        <option value="card">カード</option>
+        <option value="tone">声調テスト</option>
+        <option value="write">筆記（ピンイン入力）</option>
+      </select>
+      <span>課</span><select id="lFrom"></select><span>〜</span><select id="lTo"></select>
+      <select id="order">
+        <option value="srs">出題順：要復習を優先</option>
+        <option value="lesson">出題順：課の順</option>
+        <option value="shuffle">出題順：シャッフル</option>
+      </select>
+    </div>
+    <div class="controls">
+      <select id="dir">
+        <option value="cn">中国語 → 日本語</option>
+        <option value="jp">日本語 → 中国語</option>
+      </select>
+      <button id="starOnly">★のみ</button>
+      <button id="diffOnly">字形が違う語</button>
+      <button id="hl" class="on">字形ハイライト</button>
+      <button id="autoplay" class="on">🔊 自動</button>
+    </div>
+  </div>
+
+  <div id="gramCtl" class="controls" style="display:none">
+    <select id="gLesson"></select>
+  </div>
+
+  <div class="meter"><span id="meter">0 / 0</span><span id="meter2"></span></div>
+  <div class="bar"><i id="bK" class="g"></i><i id="bS" class="a"></i></div>
+  <div class="novoice" id="novoice">この端末に中国語の音声が見つかりません。端末の設定で中国語（普通話）の音声を追加してください。</div>
+</div></header>
+
+<!-- 学習 -->
+<div id="studyview">
+  <div class="stage">
+    <!-- カード -->
+    <div class="card" id="card">
+      <span class="tag" id="tag"></span>
+      <span class="stamp" id="stampL">もう一度</span>
+      <span class="stamp" id="stampR">覚えた</span>
+      <div class="cardtools">
+        <button class="icon spk" id="speak">🔊</button>
+        <button class="icon" id="star">★</button>
+      </div>
+      <div id="front"></div>
+      <div id="back" class="hidden"></div>
+      <div class="hint" id="hint"></div>
+    </div>
+    <!-- クイズ／筆記 -->
+    <div class="card" id="quiz" style="display:none">
+      <span class="tag" id="qtag"></span>
+      <div class="cardtools"><button class="icon spk" id="qspeak">🔊</button><button class="icon" id="qstar">★</button></div>
+      <div class="qbig" id="qhanzi"></div>
+      <div class="qsub" id="qsub"></div>
+      <div class="qmean" id="qmean"></div>
+      <div class="opts" id="qopts"></div>
+      <input id="wInput" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="fa3guo2 / fǎguó" style="display:none">
+      <div class="fb" id="qfb"></div>
+      <div class="wtip" id="wtip" style="display:none">声調は数字（fa3guo2）でもピンイン記号（fǎguó）でもOK。Enterで判定。</div>
+    </div>
+  </div>
+  <div class="nav" id="cardNav">
+    <button class="again" id="again">← もう一度</button>
+    <button class="prev" id="prev">前へ</button>
+    <button class="know" id="know">覚えた →</button>
+  </div>
+  <div class="nav" id="quizNav" style="display:none">
+    <button id="qskip">わからない</button>
+    <button class="know" id="qnext">次へ →</button>
+  </div>
+</div>
+
+<!-- 文法 -->
+<div id="gramview" class="wrap" style="display:none">
+  <div id="gramList"></div>
+  <div class="fixnote">文法カードは単語リストと授業範囲から再構成した要点です。教科書・講義の内容と食い違う箇所があれば教えてください、直します。</div>
+</div>
+
+<!-- 一覧 -->
+<div id="menuview" class="wrap" style="display:none">
+  <div class="summary">
+    <div class="stat g"><b id="sK">0</b><span>覚えた</span></div>
+    <div class="stat a"><b id="sS">0</b><span>要復習</span></div>
+    <div class="stat"><b id="sN">0</b><span>未学習</span></div>
+  </div>
+  <h2>課ごとの進み具合（タップでその課を学習）</h2>
+  <div id="lessonList"></div>
+  <h2>単語一覧</h2>
+  <div class="controls" style="margin-bottom:0">
+    <select id="mLesson"></select>
+    <select id="mFilter">
+      <option value="all">すべての状態</option>
+      <option value="k">覚えた</option><option value="s">要復習</option>
+      <option value="n">未学習</option><option value="star">★のみ</option>
+      <option value="diff">日本語と字形が違う語</option>
+    </select>
+    <select id="mSort"><option value="lesson">課順</option><option value="pinyin">ピンイン順</option></select>
+    <button id="reset">状況をリセット</button>
+  </div>
+  <input id="search" type="search" placeholder="簡体字・ピンイン・日本語で検索">
+  <div id="wordList"></div>
+  <div class="fixnote"><b>修正済み：</b>法国 <b>Fǎguó</b>／上边儿 <b>shàngbiānr</b>・外边儿 <b>wàibiānr</b>・下边儿 <b>xiàbiānr</b>・里边儿 <b>lǐbiānr</b>／里 lǐ・里面 lǐmiàn／俄国 <b>Éguó</b>。人名は除外、A/B/文の重複は統合。</div>
+</div>
+
+<script>
+const WORDS=[{"L":"05","h":"请","p":"qǐng","s":"動","m":"どうぞ","y":["qing"],"t":[3],"d":[["请","請"]]},{"L":"05","h":"到","p":"dào","s":"動","m":"～まで行く","y":["dao"],"t":[4]},{"L":"05","h":"电影","p":"diànyǐng","s":"名","m":"映画","y":["dian","ying"],"t":[4,3],"d":[["电","電"]]},{"L":"05","h":"学院","p":"xuéyuàn","s":"名","m":"学院（日本の単科大学に相当）","y":["xu","e","yuan"],"t":[0,2,4]},{"L":"05","h":"司机","p":"sījī","s":"名","m":"運転手","y":["si","ji"],"t":[1,1],"d":[["机","機"]]},{"L":"05","h":"好","p":"hǎo","s":"形","m":"いい、はい","y":["hao"],"t":[3]},{"L":"05","h":"你","p":"nǐ","s":"代","m":"あなた","y":["ni"],"t":[3]},{"L":"05","h":"是","p":"shì","s":"動","m":"～です","y":["shi"],"t":[4]},{"L":"05","h":"哪国","p":"nǎ guó","s":"組","m":"どの国、どこの国","y":["na","guo"],"t":[3,2]},{"L":"05","h":"人","p":"rén","s":"名","m":"人","y":["ren"],"t":[2]},{"L":"05","h":"我","p":"wǒ","s":"代","m":"私","y":["wo"],"t":[3]},{"L":"05","h":"日本","p":"Rìběn","s":"名","m":"日本","y":["ri","ben"],"t":[4,3]},{"L":"05","h":"第一次","p":"dì yī cì","s":"組","m":"第1回、初めて","y":["di","yi","ci"],"t":[4,1,4]},{"L":"05","h":"来","p":"lái","s":"動","m":"来る","y":["lai"],"t":[2]},{"L":"05","h":"中国","p":"Zhōngguó","s":"名","m":"中国","y":["zhong","guo"],"t":[1,2]},{"L":"05","h":"吗","p":"ma","s":"助","m":"～か？","y":["ma"],"t":[0],"d":[["吗","嗎"]]},{"L":"05","h":"对","p":"duì","s":"形","m":"正しい、はい","y":["dui"],"t":[4]},{"L":"05","h":"这","p":"zhè","s":"代","m":"これは","y":["zhe"],"t":[4],"d":[["这","這"]]},{"L":"05","h":"这儿","p":"zhèr","s":"代","m":"ここ","y":["zher"],"t":[4],"d":[["这","這"],["儿","児"]]},{"L":"05","h":"就是","p":"jiùshì","s":"組","m":"つまり～である、即ち～である","y":["jiu","shi"],"t":[4,4]},{"L":"05","h":"谢谢","p":"xièxie","s":"組","m":"ありがとう","y":["xie","xie"],"t":[4,0],"d":[["谢","謝"]]},{"L":"05","h":"客气","p":"kèqi","s":"形","m":"礼儀正しい、遠慮している","y":["ke","qi"],"t":[4,0],"d":[["气","気"]]},{"L":"05","h":"慢走","p":"màn zǒu","s":"組","m":"ゆっくり歩く→お気をつけて","y":["man","zou"],"t":[4,3]},{"L":"05","h":"美国","p":"Měiguó","s":"名","m":"アメリカ","y":["mei","guo"],"t":[3,2]},{"L":"05","h":"英国","p":"Yīngguó","s":"名","m":"イギリス","y":["ying","guo"],"t":[1,2]},{"L":"05","h":"法国","p":"Fǎguó","s":"名","m":"フランス","y":["fa","guo"],"t":[3,2]},{"L":"05","h":"德国","p":"Déguó","s":"名","m":"ドイツ","y":["de","guo"],"t":[2,2]},{"L":"05","h":"韩国","p":"Hánguó","s":"名","m":"韓国","y":["hang","uo"],"t":[2,2],"d":[["韩","韓"]]},{"L":"05","h":"故宫","p":"Gùgōng","s":"名","m":"故宮","y":["gu","gong"],"t":[4,1],"d":[["宫","宮"]]},{"L":"05","h":"车站","p":"chēzhàn","s":"名","m":"駅・バス停","y":["che","zhan"],"t":[1,4],"d":[["车","車"]]},{"L":"05","h":"机场","p":"jīchǎng","s":"名","m":"空港","y":["ji","chang"],"t":[1,3],"d":[["机","機"],["场","場"]]},{"L":"05","h":"银行","p":"yínháng","s":"名","m":"銀行","y":["yin","hang"],"t":[2,2],"d":[["银","銀"]]},{"L":"05","h":"医院","p":"yīyuàn","s":"名","m":"病院","y":["yi","yuan"],"t":[1,4]},{"L":"05","h":"邮局","p":"yóujú","s":"名","m":"郵便局","y":["you","ju"],"t":[2,2],"d":[["邮","郵"]]},{"L":"05","h":"饭店","p":"fàndiàn","s":"名","m":"ホテル","y":["fan","dian"],"t":[4,4],"d":[["饭","飯"]]},{"L":"05","h":"你们","p":"nǐmen","s":"代","m":"きみたち","y":["ni","men"],"t":[3,0],"d":[["们","們"]]},{"L":"06","h":"哎呀","p":"āiya","s":"嘆","m":"あら、おやおや","y":["ai","ya"],"t":[1,0]},{"L":"06","h":"次","p":"cì","s":"量","m":"～回","y":["ci"],"t":[4]},{"L":"06","h":"北京","p":"Běijīng","s":"名","m":"北京","y":["bei","jing"],"t":[3,1]},{"L":"06","h":"真","p":"zhēn","s":"副","m":"本当に","y":["zhen"],"t":[1]},{"L":"06","h":"高兴","p":"gāoxìng","s":"形","m":"嬉しい","y":["gao","xing"],"t":[1,4],"d":[["兴","興"]]},{"L":"06","h":"也","p":"yě","s":"副","m":"～も","y":["ye"],"t":[3]},{"L":"06","h":"很","p":"hěn","s":"副","m":"とても","y":["hen"],"t":[3]},{"L":"06","h":"路上","p":"lùshang","s":"名","m":"道中・途中","y":["lu","shang"],"t":[4,0]},{"L":"06","h":"顺利","p":"shùnlì","s":"形","m":"順調な","y":["shun","li"],"t":[4,4],"d":[["顺","順"]]},{"L":"06","h":"累","p":"lèi","s":"形","m":"疲れている","y":["lei"],"t":[4]},{"L":"06","h":"咱们","p":"zánmen","s":"代","m":"私たち（相手も含む）","y":["zan","men"],"t":[2,0],"d":[["们","們"]]},{"L":"06","h":"走","p":"zǒu","s":"動","m":"歩く、出かける、行く","y":["zou"],"t":[3]},{"L":"06","h":"吧","p":"ba","s":"助","m":"～しましょう、～でしょう？","y":["ba"],"t":[0]},{"L":"06","h":"吃","p":"chī","s":"動","m":"食べる","y":["chi"],"t":[1]},{"L":"06","h":"饭","p":"fàn","s":"名","m":"ご飯","y":["fan"],"t":[4],"d":[["饭","飯"]]},{"L":"06","h":"喝","p":"hē","s":"動","m":"飲む","y":["he"],"t":[1]},{"L":"06","h":"咖啡","p":"kāfēi","s":"名","m":"コーヒー","y":["ka","fei"],"t":[1,1]},{"L":"06","h":"看","p":"kàn","s":"動","m":"見る、読む","y":["kan"],"t":[4]},{"L":"06","h":"去","p":"qù","s":"動","m":"行く","y":["qu"],"t":[4]},{"L":"06","h":"热","p":"rè","s":"形","m":"暑い、熱い","y":["re"],"t":[4],"d":[["热","熱"]]},{"L":"06","h":"冷","p":"lěng","s":"形","m":"寒い、冷たい","y":["leng"],"t":[3]},{"L":"06","h":"忙","p":"máng","s":"形","m":"忙しい","y":["mang"],"t":[2]},{"L":"06","h":"饿","p":"è","s":"形","m":"お腹が空いている","y":["e"],"t":[4],"d":[["饿","餓"]]},{"L":"06","h":"渴","p":"kě","s":"形","m":"（喉が）渇いている","y":["ke"],"t":[3],"d":[["渴","渇"]]},{"L":"06","h":"先生","p":"xiānsheng","s":"名","m":"～さん（男性に対して）","y":["xian","sheng"],"t":[1,0]},{"L":"06","h":"小姐","p":"xiǎojie(jiě)","s":"名","m":"～さん（若い女性に対して）","y":["xiao","jie"],"t":[3,0]},{"L":"06","h":"认识","p":"rènshi","s":"動","m":"知り合う","y":["ren","shi"],"t":[4,0],"d":[["认","認"],["识","識"]]},{"L":"06","h":"好久","p":"hǎojiǔ","s":"名","m":"しばらく","y":["hao","jiu"],"t":[3,3]},{"L":"06","h":"见","p":"jiàn","s":"動","m":"会う、見かける","y":["jian"],"t":[4],"d":[["见","見"]]},{"L":"06","h":"最近","p":"zuìjìn","s":"名","m":"最近","y":["zui","jin"],"t":[4,4]},{"L":"07","h":"新来","p":"xīn lái","s":"組","m":"新しく来た","y":["xin","lai"],"t":[1,2]},{"L":"07","h":"的","p":"de","s":"助","m":"の","y":["de"],"t":[0]},{"L":"07","h":"留学生","p":"liúxuéshēng","s":"名","m":"留学生","y":["liu","xu","e","sheng"],"t":[2,0,2,1]},{"L":"07","h":"服务员","p":"fúwùyuán","s":"名","m":"ボーイ・ウェイトレス","y":["fu","wu","yuan"],"t":[2,4,2],"d":[["务","務"],["员","員"]]},{"L":"07","h":"啊","p":"à","s":"嘆","m":"あぁ","y":["a"],"t":[4]},{"L":"07","h":"欢迎","p":"huānyíng","s":"動","m":"歓迎する","y":["huan","ying"],"t":[1,2],"d":[["欢","歓"]]},{"L":"07","h":"您","p":"nín","s":"代","m":"（尊敬をこめて）あなた","y":["nin"],"t":[2]},{"L":"07","h":"贵姓","p":"guìxìng","s":"名","m":"尊い苗字","y":["gui","xing"],"t":[4,4],"d":[["贵","貴"]]},{"L":"07","h":"姓","p":"xìng","s":"動","m":"～を苗字とする","y":["xing"],"t":[4]},{"L":"07","h":"叫","p":"jiào","s":"動","m":"～という、～と呼ぶ","y":["jiao"],"t":[4]},{"L":"07","h":"嗯","p":"ǹg","s":"嘆","m":"えーっと"},{"L":"07","h":"怎么","p":"zěnme","s":"代","m":"どのように","y":["zen","me"],"t":[3,0],"d":[["么","麼"]]},{"L":"07","h":"写","p":"xiě","s":"動","m":"書く","y":["xie"],"t":[3]},{"L":"07","h":"森林","p":"sēnlín","s":"名","m":"森林","y":["sen","lin"],"t":[1,2]},{"L":"07","h":"理想","p":"lǐxiǎng","s":"名","m":"理想","y":["li","xiang"],"t":[3,3]},{"L":"07","h":"香港","p":"Xiānggǎng","s":"名","m":"香港","y":["xiang","gang"],"t":[1,3]},{"L":"07","h":"哦","p":"ò","s":"嘆","m":"合点が行った時の間投詞","y":["o"],"t":[4]},{"L":"07","h":"护照","p":"hùzhào","s":"名","m":"パスポート","y":["hu","zhao"],"t":[4,4],"d":[["护","護"]]},{"L":"07","h":"呢","p":"ne","s":"助","m":"～は？","y":["ne"],"t":[0]},{"L":"07","h":"给","p":"gěi","s":"動","m":"あげる","y":["gei"],"t":[3],"d":[["给","給"]]},{"L":"07","h":"钥匙","p":"yàoshi","s":"名","m":"鍵","y":["yao","shi"],"t":[4,0],"d":[["钥","鑰"]]},{"L":"07","h":"再见","p":"zàijiàn","s":"組","m":"さようなら","y":["zai","jian"],"t":[4,4],"d":[["见","見"]]},{"L":"07","h":"什么","p":"shénme","s":"代","m":"何","y":["shen","me"],"t":[2,0],"d":[["么","麼"]]},{"L":"07","h":"名字","p":"míngzi","s":"名","m":"名前","y":["ming","zi"],"t":[2,0]},{"L":"07","h":"谁","p":"shéi(shuí)","s":"代","m":"誰（shéi は口語、shuí はやや改まった発音）","y":["shei"],"t":[2],"d":[["谁","誰"]]},{"L":"07","h":"书","p":"shū","s":"名","m":"本","y":["shu"],"t":[1],"d":[["书","書"]]},{"L":"07","h":"词典","p":"cídiǎn","s":"名","m":"辞書","y":["ci","dian"],"t":[2,3],"d":[["词","詞"]]},{"L":"07","h":"老师","p":"lǎoshī","s":"名","m":"先生","y":["lao","shi"],"t":[3,1],"d":[["师","師"]]},{"L":"07","h":"信用卡","p":"xìnyòngkǎ","s":"名","m":"クレジットカード","y":["xin","yong","ka"],"t":[4,4,3]},{"L":"07","h":"钱","p":"qián","s":"名","m":"お金","y":["qian"],"t":[2],"d":[["钱","銭"]]},{"L":"07","h":"收据","p":"shōujù","s":"名","m":"領収書","y":["shou","ju"],"t":[1,4],"d":[["收","収"],["据","拠"]]},{"L":"07","h":"明白","p":"míngbai","s":"動","m":"分かる","y":["ming","bai"],"t":[2,0]},{"L":"07","h":"这么","p":"zhème","s":"代","m":"このように","y":["zhe","me"],"t":[4,0],"d":[["这","這"],["么","麼"]]},{"L":"07","h":"这样","p":"zhèyàng","s":"代","m":"このような","y":["zhe","yang"],"t":[4,4],"d":[["这","這"],["样","様"]]},{"L":"07","h":"名片","p":"míngpiàn","s":"名","m":"名刺","y":["ming","pian"],"t":[2,4]},{"L":"08","h":"房间","p":"fángjiān","s":"名","m":"部屋","y":["fang","jian"],"t":[2,1],"d":[["间","間"]]},{"L":"08","h":"号码","p":"hàomǎ","s":"名","m":"番号","y":["hao","ma"],"t":[4,3],"d":[["码","碼"]]},{"L":"08","h":"多少","p":"duōshao","s":"代","m":"いくつ","y":["duo","shao"],"t":[1,0]},{"L":"08","h":"零（〇）","p":"líng","s":"数","m":"ゼロ","y":["ling"],"t":[2]},{"L":"08","h":"楼","p":"lóu","s":"量","m":"～階","y":["lou"],"t":[2]},{"L":"08","h":"来","p":"lái","s":"動","m":"さあ","y":["lai"],"t":[2]},{"L":"08","h":"帮","p":"bāng","s":"動","m":"手伝う","y":["bang"],"t":[1],"d":[["帮","幇"]]},{"L":"08","h":"拿","p":"ná","s":"動","m":"持つ","y":["na"],"t":[2]},{"L":"08","h":"这边儿","p":"zhèibiānr","s":"代","m":"こっち","y":["zhei","bianr"],"t":[4,1],"d":[["这","這"],["边","辺"],["儿","児"]]},{"L":"08","h":"还是","p":"háishi(shì)","s":"連","m":"それとも","y":["hai","shi"],"t":[2,0],"d":[["还","還"]]},{"L":"08","h":"那边儿","p":"nèibiānr","s":"代","m":"あっち、そっち","y":["nei","bianr"],"t":[4,1],"d":[["边","辺"],["儿","児"]]},{"L":"08","h":"几","p":"jǐ","s":"代","m":"いくつ","y":["ji"],"t":[3],"d":[["几","幾"]]},{"L":"08","h":"学生","p":"xuésheng","s":"名","m":"学生","y":["xu","e","sheng"],"t":[0,2,0]},{"L":"08","h":"公司","p":"gōngsī","s":"名","m":"会社","y":["gong","si"],"t":[1,1]},{"L":"08","h":"职员","p":"zhíyuán","s":"名","m":"職員","y":["zhi","yuan"],"t":[2,2],"d":[["职","職"],["员","員"]]},{"L":"08","h":"客人","p":"kèren","s":"名","m":"お客","y":["ker","en"],"t":[4,0]},{"L":"08","h":"红茶","p":"hóngchá","s":"名","m":"紅茶","y":["hong","cha"],"t":[2,2],"d":[["红","紅"]]},{"L":"08","h":"啤酒","p":"píjiǔ","s":"名","m":"ビール","y":["pi","jiu"],"t":[2,3]},{"L":"08","h":"可乐","p":"kělè","s":"名","m":"コーラ","y":["ke","le"],"t":[3,4],"d":[["乐","楽"]]},{"L":"08","h":"白","p":"bái","s":"形","m":"白い","y":["bai"],"t":[2]},{"L":"08","h":"葡萄","p":"pútao","s":"名","m":"ブドウ","y":["pu","tao"],"t":[2,0]},{"L":"08","h":"酒","p":"jiǔ","s":"名","m":"酒","y":["jiu"],"t":[3]},{"L":"08","h":"红","p":"hóng","s":"形","m":"赤い","y":["hong"],"t":[2],"d":[["红","紅"]]},{"L":"08","h":"摁","p":"èn","s":"動","m":"押す","y":["en"],"t":[4]},{"L":"08","h":"电话","p":"diànhuà","s":"名","m":"電話","y":["dian","hua"],"t":[4,4],"d":[["电","電"],["话","話"]]},{"L":"08","h":"一","p":"yāo","s":"数","m":"一（“七qī”との誤解を避けるため電話番号などでは yāo と発音）","y":["yao"],"t":[1]},{"L":"08","h":"那里","p":"nàli","s":"代","m":"あそこ","y":["na","li"],"t":[4,0],"d":[["里","裏"]]},{"L":"08","h":"那儿","p":"nàr","s":"代","m":"あそこ","y":["nar"],"t":[4],"d":[["儿","児"]]},{"L":"08","h":"哪儿","p":"nǎr","s":"代","m":"どこ","y":["nar"],"t":[3],"d":[["儿","児"]]},{"L":"08","h":"哪边儿","p":"něibiānr / nǎbiānr","s":"代","m":"どこ","y":["nei","bianr"],"t":[3,1],"d":[["边","辺"],["儿","児"]]},{"L":"08","h":"这里","p":"zhèli","s":"代","m":"ここ","y":["zhe","li"],"t":[4,0],"d":[["这","這"],["里","裏"]]},{"L":"09","h":"呀","p":"yà","s":"嘆","m":"わぁ（驚きを表わす）","y":["ya"],"t":[4]},{"L":"09","h":"不错","p":"búcuò","s":"形","m":"素晴らしい（これで一語）","y":["bu","cuo"],"t":[2,4],"d":[["错","錯"]]},{"L":"09","h":"看","p":"kàn","s":"動","m":"見る、読む","y":["kan"],"t":[4]},{"L":"09","h":"那个","p":"nèige","s":"代","m":"あれ","y":["nei","ge"],"t":[4,0],"d":[["个","個"]]},{"L":"09","h":"宿舍","p":"sùshè","s":"名","m":"宿舎","y":["su","she"],"t":[4,4]},{"L":"09","h":"楼","p":"lóu","s":"名","m":"建物、階","y":["lou"],"t":[2]},{"L":"09","h":"哪个","p":"něige","s":"代","m":"どれ","y":["nei","ge"],"t":[3,0],"d":[["个","個"]]},{"L":"09","h":"怎么样","p":"zěnmeyàng","s":"代","m":"どうですか？","y":["zen","me","yang"],"t":[3,0,4],"d":[["么","麼"],["样","様"]]},{"L":"09","h":"啊","p":"a","s":"助","m":"～よ、～ね","y":["a"],"t":[0]},{"L":"09","h":"先","p":"xiān","s":"副","m":"まず","y":["xian"],"t":[1]},{"L":"09","h":"整理","p":"zhěnglǐ","s":"動","m":"整理する","y":["zheng","li"],"t":[3,3]},{"L":"09","h":"东西","p":"dōngxi","s":"名","m":"品物、荷物","y":["dong","xi"],"t":[1,0],"d":[["东","東"]]},{"L":"09","h":"然后","p":"ránhòu","s":"副","m":"その後で","y":["ran","hou"],"t":[2,4],"d":[["后","後"]]},{"L":"09","h":"去","p":"qù","s":"動","m":"行く","y":["qu"],"t":[4]},{"L":"09","h":"行","p":"xíng","s":"形","m":"いい、大丈夫だ、OK","y":["xing"],"t":[2]},{"L":"09","h":"知道","p":"zhīdao","s":"動","m":"知っている","y":["zhi","dao"],"t":[1,0]},{"L":"09","h":"当然","p":"dāngrán","s":"副","m":"もちろん","y":["dang","ran"],"t":[1,2]},{"L":"09","h":"回头","p":"huítóu","s":"副","m":"後で","y":["hui","tou"],"t":[2,2],"d":[["头","頭"]]},{"L":"09","h":"见","p":"jiàn","s":"動","m":"会う、見える","y":["jian"],"t":[4],"d":[["见","見"]]},{"L":"09","h":"西安","p":"Xī'ān","s":"名","m":"西安"},{"L":"09","h":"上海","p":"Shànghǎi","s":"名","m":"上海","y":["shang","hai"],"t":[4,3]},{"L":"09","h":"要","p":"yào","s":"動","m":"要る","y":["yao"],"t":[4]},{"L":"09","h":"那","p":"nà","s":"代","m":"あれ","y":["na"],"t":[4]},{"L":"09","h":"这个","p":"zhège","s":"代","m":"これ","y":["zhe","ge"],"t":[4,0],"d":[["这","這"],["个","個"]]},{"L":"09","h":"这个","p":"zhèige","s":"代","m":"これ","y":["zhei","ge"],"t":[4,0],"d":[["这","這"],["个","個"]]},{"L":"10","h":"笔友","p":"bǐyǒu","s":"名","m":"ペンフレンド","y":["bi","you"],"t":[3,3],"d":[["笔","筆"]]},{"L":"10","h":"谁","p":"shéi(shuí)","s":"代","m":"誰（shéi が一般的、shuí はやや改まった時の発音）","y":["shei"],"t":[2],"d":[["谁","誰"]]},{"L":"11","h":"请","p":"qǐng","s":"動","m":"どうぞ、～することを請う","y":["qing"],"t":[3],"d":[["请","請"]]},{"L":"11","h":"进","p":"jìn","s":"動","m":"入る","y":["jin"],"t":[4],"d":[["进","進"]]},{"L":"11","h":"送","p":"sòng","s":"動","m":"プレゼントする、贈る","y":["song"],"t":[4]},{"L":"11","h":"礼物","p":"lǐwù","s":"名","m":"贈り物","y":["li","wu"],"t":[3,4]},{"L":"11","h":"好意思","p":"hǎoyìsi","s":"形","m":"平気な、恥ずかしく思わない（通常は不好意思）","y":["hao","yi","si"],"t":[3,4,0]},{"L":"11","h":"可以","p":"kěyǐ","s":"助動","m":"さしつかえない","y":["ke","yi"],"t":[3,3]},{"L":"11","h":"打开","p":"dǎkāi","s":"動","m":"開ける、（機器に）スイッチを入れる","y":["da","kai"],"t":[3,1],"d":[["开","開"]]},{"L":"11","h":"CD","p":"xīdì","s":"名","m":"CD（発音は xīdì や xīdī）","y":["xi","di"],"t":[1,4]},{"L":"11","h":"有","p":"yǒu","s":"動","m":"持っている、ある","y":["you"],"t":[3]},{"L":"11","h":"CD机","p":"xīdì jī","s":"名","m":"CDプレーヤー","y":["xi","di","ji"],"t":[1,4,1],"d":[["机","機"]]},{"L":"11","h":"太～了","p":"tài~le","s":"組","m":"とても～だ"},{"L":"11","h":"感谢","p":"gǎnxiè","s":"動","m":"感謝する","y":["gan","xie"],"t":[3,4],"d":[["谢","謝"]]},{"L":"11","h":"没","p":"méi","s":"副","m":"～ない","y":["mei"],"t":[2]},{"L":"11","h":"电视机","p":"diànshì jī","s":"名","m":"テレビ","y":["dian","shi","ji"],"t":[4,4,1],"d":[["电","電"],["视","視"],["机","機"]]},{"L":"11","h":"手机","p":"shǒujī","s":"名","m":"携帯電話（スマホ 智能 zhìnéng 手机 も含む）","y":["shou","ji"],"t":[3,1],"d":[["机","機"]]},{"L":"11","h":"汽车","p":"qìchē","s":"名","m":"自動車","y":["qi","che"],"t":[4,1],"d":[["车","車"]]},{"L":"11","h":"抽烟","p":"chōuyān","s":"組","m":"タバコを吸う","y":["chou","yan"],"t":[1,1],"d":[["烟","煙"]]},{"L":"11","h":"参观","p":"cānguān","s":"動","m":"見学する","y":["cang","uan"],"t":[1,1],"d":[["观","観"]]},{"L":"11","h":"照相","p":"zhàoxiàng","s":"動","m":"写真を撮る","y":["zhao","xiang"],"t":[4,4]},{"L":"11","h":"打","p":"dǎ","s":"動","m":"打つ、（電話を）かける","y":["da"],"t":[3]},{"L":"11","h":"哪儿的话","p":"nǎr de huà","s":"組","m":"どういたしまして","y":["nar","de","hua"],"t":[3,0,4],"d":[["儿","児"],["话","話"]]},{"L":"12","h":"坐","p":"zuò","s":"動","m":"座る","y":["zuo"],"t":[4]},{"L":"12","h":"乱","p":"luàn","s":"形","m":"乱れている","y":["luan"],"t":[4]},{"L":"12","h":"哪里","p":"nǎli","s":"代","m":"どこ、とんでもない（実際の発音は ná li）","y":["na","li"],"t":[3,0],"d":[["里","裏"]]},{"L":"12","h":"两","p":"liǎng","s":"数","m":"二つ","y":["liang"],"t":[3],"d":[["两","両"]]},{"L":"12","h":"张","p":"zhāng","s":"量","m":"～枚、（ベッドを数える）個","y":["zhang"],"t":[1],"d":[["张","張"]]},{"L":"12","h":"床","p":"chuáng","s":"名","m":"ベッド","y":["chuang"],"t":[2]},{"L":"12","h":"还","p":"hái","s":"副","m":"他に、更に、まだ","y":["hai"],"t":[2],"d":[["还","還"]]},{"L":"12","h":"同屋","p":"tóngwū","s":"名","m":"ルームメイト","y":["tong","wu"],"t":[2,1]},{"L":"12","h":"喝","p":"hē","s":"動","m":"飲む","y":["he"],"t":[1]},{"L":"12","h":"茶","p":"chá","s":"名","m":"お茶","y":["cha"],"t":[2]},{"L":"12","h":"香","p":"xiāng","s":"形","m":"いい香りがする","y":["xiang"],"t":[1]},{"L":"12","h":"花茶","p":"huāchá","s":"名","m":"茉莉花茶、ジャスミン茶","y":["hua","cha"],"t":[1,2]},{"L":"12","h":"点心","p":"diǎnxin","s":"名","m":"お菓子","y":["dian","xin"],"t":[3,0]},{"L":"12","h":"尝","p":"cháng","s":"動","m":"味わう","y":["chang"],"t":[2],"d":[["尝","嘗"]]},{"L":"12","h":"好吃","p":"hǎochī","s":"形","m":"（食べるものが）美味しい","y":["hao","chi"],"t":[3,1]},{"L":"12","h":"特产","p":"tèchǎn","s":"名","m":"特産","y":["te","chan"],"t":[4,3],"d":[["产","産"]]},{"L":"12","h":"学校","p":"xuéxiào","s":"名","m":"学校","y":["xu","e","xiao"],"t":[0,2,4]},{"L":"12","h":"洗手间","p":"xǐshǒujiān","s":"名","m":"トイレ","y":["xi","shou","jian"],"t":[3,3,1],"d":[["间","間"]]},{"L":"12","h":"朵","p":"duǒ","s":"量","m":"輪（花を数える）","y":["duo"],"t":[3]},{"L":"12","h":"花儿","p":"huār","s":"名","m":"花","y":["huar"],"t":[1],"d":[["儿","児"]]},{"L":"12","h":"本","p":"běn","s":"量","m":"冊（本を数える）","y":["ben"],"t":[3]},{"L":"12","h":"杂志","p":"zázhì","s":"名","m":"雑誌","y":["za","zhi"],"t":[2,4],"d":[["杂","雑"]]},{"L":"12","h":"棵","p":"kē","s":"量","m":"本（木や芽を数える）","y":["ke"],"t":[1]},{"L":"12","h":"树","p":"shù","s":"名","m":"木","y":["shu"],"t":[4],"d":[["树","樹"]]},{"L":"12","h":"所","p":"suǒ","s":"量","m":"軒（建物を数える）","y":["suo"],"t":[3]},{"L":"12","h":"房子","p":"fángzi","s":"名","m":"家屋","y":["fang","zi"],"t":[2,0]},{"L":"12","h":"件","p":"jiàn","s":"量","m":"～件、（服を数える）","y":["jian"],"t":[4]},{"L":"12","h":"衣服","p":"yīfu","s":"名","m":"服","y":["yi","fu"],"t":[1,0]},{"L":"12","h":"邮票","p":"yóupiào","s":"名","m":"切手","y":["you","piao"],"t":[2,4],"d":[["邮","郵"]]},{"L":"12","h":"做","p":"zuò","s":"動","m":"する、作る","y":["zuo"],"t":[4]},{"L":"12","h":"菜","p":"cài","s":"名","m":"料理、野菜","y":["cai"],"t":[4]},{"L":"12","h":"台湾","p":"Táiwān","s":"名","m":"台湾","y":["tai","wan"],"t":[2,1]},{"L":"12","h":"乌龙茶","p":"wūlóngchá","s":"名","m":"ウーロン茶","y":["wu","long","cha"],"t":[1,2,2],"d":[["乌","烏"],["龙","竜"]]},{"L":"13","h":"食堂","p":"shítáng","s":"名","m":"食堂","y":["shi","tang"],"t":[2,2]},{"L":"13","h":"小卖部","p":"xiǎomàibù","s":"名","m":"売店","y":["xiao","mai","bu"],"t":[3,4,4],"d":[["卖","売"]]},{"L":"13","h":"下边儿","p":"xiàbiānr","s":"名・方","m":"した","y":["xia","bianr"],"t":[4,1],"d":[["边","辺"],["儿","児"]]},{"L":"13","h":"教学楼","p":"jiàoxuélóu","s":"名","m":"教室棟","y":["jiao","xu","e","lou"],"t":[4,0,2,2]},{"L":"13","h":"在","p":"zài","s":"動・介","m":"ある、いる","y":["zai"],"t":[4]},{"L":"13","h":"上课","p":"shàng kè","s":"組","m":"授業に出る、授業をする","y":["shang","ke"],"t":[4,4],"d":[["课","課"]]},{"L":"13","h":"里边儿","p":"lǐbiānr","s":"名・方","m":"なか","y":["li","bianr"],"t":[3,1],"d":[["里","裏"],["边","辺"],["儿","児"]]},{"L":"13","h":"练功房","p":"liàngōngfáng","s":"名","m":"練習室","y":["liang","ong","fang"],"t":[4,1,2],"d":[["练","練"]]},{"L":"13","h":"请问","p":"qǐngwèn","s":"組","m":"おたずねしますが","y":["qing","wen"],"t":[3,4],"d":[["请","請"],["问","問"]]},{"L":"13","h":"操场","p":"cāochǎng","s":"名","m":"運動場","y":["cao","chang"],"t":[1,3],"d":[["场","場"]]},{"L":"13","h":"办公楼","p":"bàngōnglóu","s":"名","m":"事務棟","y":["bang","ong","lou"],"t":[4,1,2],"d":[["办","辦"]]},{"L":"13","h":"图书馆","p":"túshūguǎn","s":"名","m":"図書館","y":["tu","shu","guan"],"t":[2,1,3],"d":[["图","図"],["书","書"],["馆","館"]]},{"L":"13","h":"礼堂","p":"lǐtáng","s":"名","m":"講堂","y":["li","tang"],"t":[3,2]},{"L":"13","h":"工作","p":"gōngzuò","s":"動","m":"仕事をする","y":["gong","zuo"],"t":[1,4]},{"L":"13","h":"打工","p":"dǎgōng","s":"動","m":"アルバイト（肉体労働）をする","y":["da","gong"],"t":[3,1]},{"L":"13","h":"餐厅","p":"cāntīng","s":"名","m":"レストラン","y":["can","ting"],"t":[1,1],"d":[["厅","庁"]]},{"L":"13","h":"学习","p":"xuéxí","s":"動","m":"勉強する","y":["xu","e","xi"],"t":[0,2,2],"d":[["习","習"]]},{"L":"13","h":"大学","p":"dàxué","s":"名","m":"大学","y":["da","xu","e"],"t":[4,0,2]},{"L":"13","h":"父亲","p":"fùqin","s":"名","m":"父","y":["fu","qin"],"t":[4,0],"d":[["亲","親"]]},{"L":"13","h":"母亲","p":"mǔqin","s":"名","m":"母","y":["mu","qin"],"t":[3,0],"d":[["亲","親"]]},{"L":"13","h":"老家","p":"lǎojiā","s":"名","m":"実家","y":["lao","jia"],"t":[3,1]},{"L":"13","h":"北","p":"běi","s":"名","m":"北","y":["bei"],"t":[3]},{"L":"13","h":"北边儿","p":"běibiānr","s":"名","m":"北側","y":["bei","bianr"],"t":[3,1],"d":[["边","辺"],["儿","児"]]},{"L":"13","h":"东","p":"dōng","s":"名","m":"東","y":["dong"],"t":[1],"d":[["东","東"]]},{"L":"13","h":"东边儿","p":"dōngbiānr","s":"名","m":"東側","y":["dong","bianr"],"t":[1,1],"d":[["东","東"],["边","辺"],["儿","児"]]},{"L":"13","h":"后","p":"hòu","s":"名","m":"後ろ","y":["hou"],"t":[4],"d":[["后","後"]]},{"L":"13","h":"后边儿","p":"hòubiānr","s":"名","m":"後ろ側","y":["hou","bianr"],"t":[4,1],"d":[["后","後"],["边","辺"],["儿","児"]]},{"L":"13","h":"后面","p":"hòumiàn","s":"名","m":"後ろ側","y":["hou","mian"],"t":[4,4],"d":[["后","後"]]},{"L":"13","h":"后头","p":"hòutou","s":"名","m":"後ろ","y":["hou","tou"],"t":[4,0],"d":[["后","後"],["头","頭"]]},{"L":"13","h":"里","p":"lǐ","s":"名","m":"なか","y":["li"],"t":[3],"d":[["里","裏"]]},{"L":"13","h":"里面","p":"lǐmiàn","s":"名","m":"なか","y":["li","mian"],"t":[3,4],"d":[["里","裏"]]},{"L":"13","h":"里头","p":"lǐtou","s":"名","m":"なか","y":["li","tou"],"t":[3,0],"d":[["里","裏"],["头","頭"]]},{"L":"13","h":"南","p":"nán","s":"名","m":"南","y":["nan"],"t":[2]},{"L":"13","h":"南边儿","p":"nánbiānr","s":"名","m":"南側","y":["nan","bianr"],"t":[2,1],"d":[["边","辺"],["儿","児"]]},{"L":"13","h":"旁","p":"páng","s":"名","m":"となり","y":["pang"],"t":[2]},{"L":"13","h":"旁边儿","p":"pángbiānr","s":"名","m":"となり側","y":["pang","bianr"],"t":[2,1],"d":[["边","辺"],["儿","児"]]},{"L":"13","h":"前","p":"qián","s":"名","m":"前","y":["qian"],"t":[2]},{"L":"13","h":"前边儿","p":"qiánbiānr","s":"名","m":"前側","y":["qian","bianr"],"t":[2,1],"d":[["边","辺"],["儿","児"]]},{"L":"13","h":"前面","p":"qiánmiàn","s":"名","m":"前側","y":["qian","mian"],"t":[2,4]},{"L":"13","h":"前头","p":"qiántou","s":"名","m":"前側","y":["qian","tou"],"t":[2,0],"d":[["头","頭"]]},{"L":"13","h":"上","p":"shàng","s":"名","m":"うえ","y":["shang"],"t":[4]},{"L":"13","h":"上边儿","p":"shàngbiānr","s":"方","m":"うえ","y":["shang","bianr"],"t":[4,1],"d":[["边","辺"],["儿","児"]]},{"L":"13","h":"上面","p":"shàngmiàn","s":"方","m":"うえ","y":["shang","mian"],"t":[4,4]},{"L":"13","h":"上头","p":"shàngtou","s":"方","m":"うえ","y":["shang","tou"],"t":[4,0],"d":[["头","頭"]]},{"L":"13","h":"外边儿","p":"wàibiānr","s":"方","m":"そと","y":["wai","bianr"],"t":[4,1],"d":[["边","辺"],["儿","児"]]},{"L":"13","h":"外面","p":"wàimiàn","s":"方","m":"そと","y":["wai","mian"],"t":[4,4]},{"L":"13","h":"外头","p":"wàitou","s":"方","m":"そと","y":["wai","tou"],"t":[4,0],"d":[["头","頭"]]},{"L":"13","h":"下面","p":"xiàmiàn","s":"方","m":"した","y":["xia","mian"],"t":[4,4]},{"L":"13","h":"下头","p":"xiàtou","s":"方","m":"した","y":["xia","tou"],"t":[4,0],"d":[["头","頭"]]},{"L":"13","h":"右","p":"yòu","s":"名","m":"右","y":["you"],"t":[4]},{"L":"13","h":"右边儿","p":"yòubiānr","s":"名","m":"右側","y":["you","bianr"],"t":[4,1],"d":[["边","辺"],["儿","児"]]},{"L":"13","h":"中","p":"zhōng","s":"名","m":"なか","y":["zhong"],"t":[1]},{"L":"13","h":"中间","p":"zhōngjiān(r)","s":"名","m":"中央、真ん中","y":["zhong","jian"],"t":[1,1],"d":[["间","間"]]},{"L":"13","h":"左","p":"zuǒ","s":"名","m":"左","y":["zuo"],"t":[3]},{"L":"13","h":"左边儿","p":"zuǒbiānr","s":"名","m":"左側","y":["zuo","bianr"],"t":[3,1],"d":[["边","辺"],["儿","児"]]},{"L":"14","h":"诶","p":"éi","s":"嘆","m":"ねえ","y":["ei"],"t":[2],"d":[["诶","欸"]]},{"L":"14","h":"小","p":"xiǎo","s":"形","m":"小さい、（名前の前につけて）～さん","y":["xiao"],"t":[3]},{"L":"14","h":"初次","p":"chūcì","s":"副","m":"初めて","y":["chu","ci"],"t":[1,4]},{"L":"14","h":"见面","p":"jiànmiàn","s":"動","m":"会う","y":["jian","mian"],"t":[4,4],"d":[["见","見"]]},{"L":"14","h":"多","p":"duō","s":"形・副","m":"多い、多く","y":["duo"],"t":[1]},{"L":"14","h":"关照","p":"guānzhào","s":"動","m":"世話をする","y":["guan","zhao"],"t":[1,4],"d":[["关","関"]]},{"L":"14","h":"认识","p":"rènshi","s":"動","m":"面識がある","y":["ren","shi"],"t":[4,0],"d":[["认","認"],["识","識"]]},{"L":"14","h":"系","p":"xì","s":"名","m":"学部、学科","y":["xi"],"t":[4]},{"L":"14","h":"表演","p":"biǎoyǎn","s":"動","m":"演技する","y":["biao","yan"],"t":[3,3]},{"L":"14","h":"年级","p":"niánjí","s":"名","m":"～年生","y":["nian","ji"],"t":[2,2],"d":[["级","級"]]},{"L":"14","h":"今年","p":"jīnnián","s":"名","m":"今年","y":["jin","nian"],"t":[1,2]},{"L":"14","h":"多大","p":"duōdà","s":"代","m":"いくつ","y":["duo","da"],"t":[1,4]},{"L":"14","h":"岁","p":"suì","s":"量","m":"～歳","y":["sui"],"t":[4],"d":[["岁","歳"]]},{"L":"14","h":"岁数","p":"suìshu","s":"名","m":"年齢","y":["sui","shu"],"t":[4,0],"d":[["岁","歳"]]},{"L":"14","h":"文学","p":"wénxué","s":"名","m":"文学","y":["wen","xu","e"],"t":[2,0,2]},{"L":"14","h":"经济","p":"jīngjì","s":"名","m":"経済","y":["jing","ji"],"t":[1,4],"d":[["经","経"],["济","済"]]},{"L":"14","h":"法律","p":"fǎlǜ","s":"名","m":"法律","y":["fa","lv"],"t":[3,4]},{"L":"14","h":"经营","p":"jīngyíng","s":"名","m":"経営","y":["jing","ying"],"t":[1,2],"d":[["经","経"],["营","営"]]},{"L":"14","h":"教育","p":"jiàoyù","s":"名","m":"教育","y":["jiao","yu"],"t":[4,4]},{"L":"14","h":"外语","p":"wàiyǔ","s":"名","m":"外国語","y":["wai","yu"],"t":[4,3],"d":[["语","語"]]},{"L":"14","h":"这位","p":"zhè wèi","s":"組","m":"こちらの方","y":["zhe","wei"],"t":[4,4],"d":[["这","這"]]},{"L":"14","h":"朋友","p":"péngyou","s":"名","m":"友達","y":["peng","you"],"t":[2,0]},{"L":"14","h":"大","p":"dà","s":"形","m":"大きい","y":["da"],"t":[4]},{"L":"14","h":"低","p":"dī","s":"形","m":"低い","y":["di"],"t":[1]},{"L":"14","h":"短","p":"duǎn","s":"形","m":"短い","y":["duan"],"t":[3]},{"L":"14","h":"多长","p":"duōcháng","s":"代","m":"どれくらいの長さ","y":["duo","chang"],"t":[1,2],"d":[["长","長"]]},{"L":"14","h":"多高","p":"duōgāo","s":"代","m":"どれくらいの高さ","y":["duo","gao"],"t":[1,1]},{"L":"14","h":"多远","p":"duōyuǎn","s":"代","m":"どれくらいの距離（遠さ）","y":["duo","yuan"],"t":[1,3],"d":[["远","遠"]]},{"L":"14","h":"高","p":"gāo","s":"形","m":"（背が）高い","y":["gao"],"t":[1]},{"L":"14","h":"近","p":"jìn","s":"形","m":"近い","y":["jin"],"t":[4]},{"L":"15","h":"会","p":"huì","s":"助動","m":"（習得した技能が）できる","y":["hui"],"t":[4]},{"L":"15","h":"跳","p":"tiào","s":"動","m":"踊る、跳ねる","y":["tiao"],"t":[4]},{"L":"15","h":"芭蕾舞","p":"bālěiwǔ","s":"名","m":"バレエ","y":["ba","lei","wu"],"t":[1,3,3]},{"L":"15","h":"民族舞","p":"mínzúwǔ","s":"名","m":"民族舞踊","y":["min","zu","wu"],"t":[2,2,3]},{"L":"15","h":"现在","p":"xiànzài","s":"名","m":"いま","y":["xian","zai"],"t":[4,4],"d":[["现","現"]]},{"L":"15","h":"能","p":"néng","s":"助動","m":"（周囲の状況をふまえ）できる","y":["neng"],"t":[2]},{"L":"15","h":"跳舞","p":"tiàowǔ","s":"動","m":"踊る","y":["tiao","wu"],"t":[4,3]},{"L":"15","h":"想","p":"xiǎng","s":"助動","m":"～したい","y":["xiang"],"t":[3]},{"L":"15","h":"开始","p":"kāishǐ","s":"動","m":"始める","y":["kai","shi"],"t":[1,3],"d":[["开","開"]]},{"L":"15","h":"棒","p":"bàng","s":"形","m":"すごい","y":["bang"],"t":[4]},{"L":"15","h":"好看","p":"hǎokàn","s":"形","m":"きれい","y":["hao","kan"],"t":[3,4]},{"L":"15","h":"过奖","p":"guòjiǎng","s":"動","m":"褒めすぎる","y":["guo","jiang"],"t":[4,3],"d":[["过","過"],["奖","奨"]]},{"L":"15","h":"游泳","p":"yóuyǒng","s":"動","m":"泳ぐ","y":["you","yong"],"t":[2,3]},{"L":"15","h":"滑雪","p":"huáxuě","s":"組","m":"スキーをする","y":["hua","xu","e"],"t":[2,0,3]},{"L":"15","h":"开车","p":"kāichē","s":"組","m":"運転する","y":["kai","che"],"t":[1,1],"d":[["开","開"],["车","車"]]},{"L":"15","h":"英语","p":"Yīngyǔ","s":"名","m":"英語","y":["ying","yu"],"t":[1,3],"d":[["语","語"]]},{"L":"15","h":"唱","p":"chàng","s":"動","m":"歌う","y":["chang"],"t":[4]},{"L":"15","h":"歌儿","p":"gēr","s":"名","m":"歌","y":["ger"],"t":[1],"d":[["儿","児"]]},{"L":"15","h":"事儿","p":"shìr","s":"名","m":"用事、事","y":["shir"],"t":[4],"d":[["儿","児"]]},{"L":"15","h":"听","p":"tīng","s":"動","m":"聞く","y":["ting"],"t":[1]},{"L":"15","h":"好听","p":"hǎotīng","s":"形","m":"（歌や音楽が）きれい","y":["hao","ting"],"t":[3,1]},{"L":"16","h":"校园","p":"xiàoyuán","s":"名","m":"キャンパス","y":["xiao","yuan"],"t":[4,2],"d":[["园","園"]]},{"L":"16","h":"同学","p":"tóngxué","s":"名","m":"クラスメート","y":["tong","xu","e"],"t":[2,0,2]},{"L":"16","h":"练功","p":"liàngōng","s":"動","m":"練習する","y":["liang","ong"],"t":[4,1],"d":[["练","練"]]},{"L":"16","h":"问","p":"wèn","s":"動","m":"尋ねる、質問する","y":["wen"],"t":[4],"d":[["问","問"]]},{"L":"16","h":"舞蹈","p":"wǔdǎo","s":"名","m":"踊り","y":["wu","dao"],"t":[3,3]},{"L":"16","h":"个","p":"ge","s":"量","m":"汎用の量詞 例：人 rén, 菜 cài","y":["ge"],"t":[0],"d":[["个","個"]]},{"L":"16","h":"位","p":"wèi","s":"量","m":"尊敬する人 例：客人 kèren, 老师 lǎoshī","y":["wei"],"t":[4]},{"L":"16","h":"口","p":"kǒu","s":"量","m":"養う家族、家畜 例：人 rén, 猪 zhū","y":["kou"],"t":[3]},{"L":"16","h":"匹","p":"pǐ","s":"量","m":"馬、布 例：马 mǎ, 布 bù","y":["pi"],"t":[3]},{"L":"16","h":"条","p":"tiáo","s":"量","m":"細長いモノ 例：鱼 yú, 路 lù, 河 hé","y":["tiao"],"t":[2]},{"L":"16","h":"根","p":"gēn","s":"量","m":"やや短い細長いモノ 例：线 xiàn, 绳子 shéngzi","y":["gen"],"t":[1]},{"L":"16","h":"张","p":"zhāng","s":"量","m":"平らなモノ 例：纸 zhǐ","y":["zhang"],"t":[1],"d":[["张","張"]]},{"L":"16","h":"封","p":"fēng","s":"量","m":"手紙など 例：信 xìn, 电报 diànbào","y":["feng"],"t":[1]},{"L":"16","h":"本","p":"běn","s":"量","m":"冊子類 例：书 shū, 字典 zìdiǎn","y":["ben"],"t":[3]},{"L":"16","h":"块","p":"kuài","s":"量","m":"かたまり 例：肉 ròu, 蛋糕 dàngāo","y":["kuai"],"t":[4],"d":[["块","塊"]]},{"L":"16","h":"把","p":"bǎ","s":"量","m":"取っ手のあるモノ 例：椅子 yǐzi, 钥匙 yàoshi","y":["ba"],"t":[3]},{"L":"16","h":"棵","p":"kē","s":"量","m":"木や芽など 例：树 shù, 芽 yá","y":["ke"],"t":[1]},{"L":"16","h":"朵","p":"duǒ","s":"量","m":"花 例：花儿 huār","y":["duo"],"t":[3]},{"L":"16","h":"家","p":"jiā","s":"量","m":"軒 例：饭店 fàndiàn, 公司 gōngsī","y":["jia"],"t":[1]},{"L":"16","h":"所","p":"suǒ","s":"量","m":"建物 例：大学 dàxué, 房子 fángzi","y":["suo"],"t":[3]},{"L":"16","h":"件","p":"jiàn","s":"量","m":"用事、洋服など 例：事儿 shìr, 衣服 yīfu","y":["jian"],"t":[4]},{"L":"16","h":"种","p":"zhǒng","s":"量","m":"種類 例：人 rén, 房间 fángjiān","y":["zhong"],"t":[3],"d":[["种","種"]]},{"L":"16","h":"些","p":"xiē","s":"量","m":"複数を示す：一些 yìxiē 例：人 rén, 书 shū","y":["xie"],"t":[1]},{"L":"16","h":"蛋糕","p":"dàngāo","s":"名","m":"ケーキ","y":["dang","ao"],"t":[4,1]},{"L":"16","h":"椅子","p":"yǐzi","s":"名","m":"イス","y":["yi","zi"],"t":[3,0]},{"L":"17","h":"买","p":"mǎi","s":"動","m":"買う","y":["mai"],"t":[3],"d":[["买","買"]]},{"L":"17","h":"件","p":"jiàn","s":"量","m":"～着（服を数える）","y":["jian"],"t":[4]},{"L":"17","h":"旗袍","p":"qípáor","s":"名","m":"チャイナドレス","y":["qi","paor"],"t":[2,2]},{"L":"17","h":"明天","p":"míngtiān","s":"名","m":"明日","y":["ming","tian"],"t":[2,1]},{"L":"17","h":"正好","p":"zhènghǎo","s":"副","m":"ちょうど","y":["zheng","hao"],"t":[4,3]},{"L":"17","h":"星期天","p":"xīngqítiān","s":"名","m":"日曜","y":["xing","qi","tian"],"t":[1,2,1]},{"L":"17","h":"一起","p":"yìqǐ","s":"副","m":"一緒に","y":["yi","qi"],"t":[4,3]},{"L":"17","h":"不过","p":"búguò","s":"連","m":"でも","y":["bu","guo"],"t":[2,4],"d":[["过","過"]]},{"L":"17","h":"空","p":"kòng","s":"名","m":"ひま","y":["kong"],"t":[4]},{"L":"17","h":"再说","p":"zàishuō","s":"連","m":"それに","y":["zai","shuo"],"t":[4,1],"d":[["说","説"]]},{"L":"17","h":"喜欢","p":"xǐhuan","s":"動","m":"好きだ","y":["xi","huan"],"t":[3,0],"d":[["欢","歓"]]},{"L":"17","h":"逛","p":"guàng","s":"動","m":"ぶらつく","y":["guang"],"t":[4]},{"L":"17","h":"商店","p":"shāngdiàn","s":"名","m":"お店","y":["shang","dian"],"t":[1,4]},{"L":"17","h":"那","p":"nà","s":"連","m":"それなら","y":["na"],"t":[4]},{"L":"17","h":"点","p":"diǎn","s":"量","m":"～時","y":["dian"],"t":[3]},{"L":"17","h":"门口","p":"ménkǒu","s":"名","m":"門","y":["men","kou"],"t":[2,3],"d":[["门","門"]]},{"L":"17","h":"就","p":"jiù","s":"副","m":"～なら～、すぐに、他でもなく","y":["jiu"],"t":[4]},{"L":"17","h":"这样","p":"zhèyàng","s":"代","m":"そのような","y":["zhe","yang"],"t":[4,4],"d":[["这","這"],["样","様"]]},{"L":"17","h":"每天","p":"měitiān","s":"名","m":"毎日","y":["mei","tian"],"t":[3,1],"d":[["每","毎"]]},{"L":"17","h":"起床","p":"qǐchuáng","s":"組","m":"起きる","y":["qi","chuang"],"t":[3,2]},{"L":"17","h":"左右","p":"zuǒyòu","s":"助","m":"～くらい、～頃","y":["zuo","you"],"t":[3,4]},{"L":"17","h":"回家","p":"huí jiā","s":"組","m":"家に帰る","y":["hui","jia"],"t":[2,1]},{"L":"17","h":"晚饭","p":"wǎnfàn","s":"名","m":"晩御飯","y":["wan","fan"],"t":[3,4],"d":[["晚","晩"],["饭","飯"]]},{"L":"17","h":"睡觉","p":"shuìjiào","s":"動","m":"眠る","y":["shui","jiao"],"t":[4,4],"d":[["觉","覚"]]},{"L":"17","h":"课","p":"kè","s":"名","m":"授業","y":["ke"],"t":[4],"d":[["课","課"]]},{"L":"17","h":"分","p":"fēn","s":"量","m":"（時間の）分、（20課：貨幣単位）分","y":["fen"],"t":[1]},{"L":"17","h":"半","p":"bàn","s":"量","m":"半、半分","y":["ban"],"t":[4]},{"L":"17","h":"后天","p":"hòutiān","s":"名","m":"明後日","y":["hou","tian"],"t":[4,1],"d":[["后","後"]]},{"L":"17","h":"今天","p":"jīntiān","s":"名","m":"今日","y":["jin","tian"],"t":[1,1]},{"L":"17","h":"刻","p":"kè","s":"量","m":"15分","y":["ke"],"t":[4]},{"L":"17","h":"前天","p":"qiántiān","s":"名","m":"一昨日","y":["qian","tian"],"t":[2,1]},{"L":"17","h":"钟","p":"zhōng","s":"量","m":"時計","y":["zhong"],"t":[1],"d":[["钟","鐘"]]},{"L":"17","h":"昨天","p":"zuótiān","s":"名","m":"昨日","y":["zuo","tian"],"t":[2,1]},{"L":"18","h":"到","p":"dào","s":"介","m":"～まで","y":["dao"],"t":[4]},{"L":"18","h":"地方","p":"dìfang","s":"名","m":"場所","y":["di","fang"],"t":[4,0]},{"L":"18","h":"东单","p":"Dōngdān","s":"名","m":"東単（地名）","y":["dong","dan"],"t":[1,1],"d":[["东","東"],["单","単"]]},{"L":"18","h":"离","p":"lí","s":"介","m":"～から","y":["li"],"t":[2],"d":[["离","離"]]},{"L":"18","h":"远","p":"yuǎn","s":"形","m":"遠い","y":["yuan"],"t":[3],"d":[["远","遠"]]},{"L":"18","h":"太","p":"tài","s":"副","m":"あまりに","y":["tai"],"t":[4]},{"L":"18","h":"要","p":"yào","s":"助動","m":"～する必要がある","y":["yao"],"t":[4]},{"L":"18","h":"地铁","p":"dìtiě","s":"名","m":"地下鉄","y":["di","tie"],"t":[4,3],"d":[["铁","鉄"]]},{"L":"18","h":"不用","p":"búyòng","s":"副","m":"～しなくともよい","y":["bu","yong"],"t":[2,4]},{"L":"18","h":"公共","p":"gōnggòng","s":"形","m":"公共の","y":["gong","gong"],"t":[1,4]},{"L":"18","h":"汽车","p":"qìchē","s":"名","m":"自動車","y":["qi","che"],"t":[4,1],"d":[["车","車"]]},{"L":"18","h":"合适","p":"héshì","s":"形","m":"適当な","y":["he","shi"],"t":[2,4],"d":[["适","適"]]},{"L":"18","h":"别","p":"bié","s":"副","m":"～するな","y":["bie"],"t":[2],"d":[["别","別"]]},{"L":"18","h":"飞机","p":"fēijī","s":"名","m":"飛行機","y":["fei","ji"],"t":[1,1],"d":[["飞","飛"],["机","機"]]},{"L":"18","h":"火车","p":"huǒchē","s":"名","m":"汽車","y":["huo","che"],"t":[3,1],"d":[["车","車"]]},{"L":"18","h":"好好儿","p":"hǎohāor","s":"副","m":"よく、ちゃんと","y":["hao","haor"],"t":[3,1],"d":[["儿","児"]]},{"L":"18","h":"休息","p":"xiūxi","s":"動","m":"休む","y":["xiu","xi"],"t":[1,0]},{"L":"18","h":"打针","p":"dǎzhēn","s":"組","m":"注射する","y":["da","zhen"],"t":[3,1],"d":[["针","針"]]},{"L":"18","h":"药","p":"yào","s":"名","m":"薬","y":["yao"],"t":[4],"d":[["药","薬"]]},{"L":"18","h":"说话","p":"shuō huà","s":"組","m":"話しをする","y":["shuo","hua"],"t":[1,4],"d":[["说","説"],["话","話"]]},{"L":"18","h":"银座","p":"Yínzuò","s":"名","m":"銀座","y":["yin","zuo"],"t":[2,4],"d":[["银","銀"]]},{"L":"19","h":"种类","p":"zhǒnglèi","s":"名","m":"種類","y":["zhong","lei"],"t":[3,4],"d":[["种","種"],["类","類"]]},{"L":"19","h":"试穿","p":"shìchuān","s":"動","m":"試着する","y":["shi","chuan"],"t":[4,1],"d":[["试","試"]]},{"L":"19","h":"瘦","p":"shòu","s":"形","m":"痩せている、細い","y":["shou"],"t":[4]},{"L":"19","h":"一点儿","p":"yìdiǎnr","s":"名","m":"ちょっと（の分量）","y":["yi","dianr"],"t":[4,3],"d":[["儿","児"]]},{"L":"19","h":"有点儿","p":"yǒudiǎnr","s":"副","m":"ちょっと～すぎる","y":["you","dianr"],"t":[3,3],"d":[["儿","児"]]},{"L":"19","h":"长","p":"cháng","s":"形","m":"長い","y":["chang"],"t":[2],"d":[["长","長"]]},{"L":"19","h":"紫红","p":"zǐhóng","s":"形","m":"あかむらさき","y":["zi","hong"],"t":[3,2],"d":[["红","紅"]]},{"L":"19","h":"刚才","p":"gāngcái","s":"副","m":"さっき","y":["gang","cai"],"t":[1,2],"d":[["刚","剛"]]},{"L":"19","h":"还","p":"hái","s":"副","m":"けっこう、なかなか","y":["hai"],"t":[2],"d":[["还","還"]]},{"L":"19","h":"挺","p":"tǐng","s":"副","m":"とても","y":["ting"],"t":[3]},{"L":"19","h":"难","p":"nán","s":"形","m":"難しい","y":["nan"],"t":[2],"d":[["难","難"]]},{"L":"19","h":"真是的","p":"zhēnshi de","s":"組","m":"まったく！（嘆き）","y":["zhen","shi","de"],"t":[1,0,0]},{"L":"19","h":"长江","p":"Chángjiāng","s":"名","m":"揚子江","y":["chang","jiang"],"t":[2,1],"d":[["长","長"]]},{"L":"19","h":"黄河","p":"Huánghé","s":"名","m":"黄河","y":["huang","he"],"t":[2,2]},{"L":"19","h":"东京","p":"Dōngjīng","s":"名","m":"東京","y":["dong","jing"],"t":[1,1],"d":[["东","東"]]},{"L":"19","h":"大阪","p":"Dàbǎn","s":"名","m":"大阪","y":["da","ban"],"t":[4,3]},{"L":"19","h":"英语","p":"Yīngyǔ","s":"名","m":"英語","y":["ying","yu"],"t":[1,3],"d":[["语","語"]]},{"L":"19","h":"汉语","p":"Hànyǔ","s":"名","m":"中国語","y":["han","yu"],"t":[4,3],"d":[["汉","漢"],["语","語"]]},{"L":"19","h":"德语","p":"Déyǔ","s":"名","m":"ドイツ語","y":["de","yu"],"t":[2,3],"d":[["语","語"]]},{"L":"19","h":"俄国","p":"Éguó","s":"名","m":"ロシア","y":["e","guo"],"t":[2,2]},{"L":"19","h":"花瓶","p":"huāpíng","s":"名","m":"花瓶","y":["hua","ping"],"t":[1,2]},{"L":"19","h":"沉","p":"chén","s":"形","m":"重い","y":["chen"],"t":[2],"d":[["沉","沈"]]},{"L":"19","h":"轻","p":"qīng","s":"形","m":"軽い","y":["qing"],"t":[1],"d":[["轻","軽"]]},{"L":"20","h":"售货员","p":"shòuhuòyuán","s":"名","m":"店員、売り子","y":["shou","huo","yuan"],"t":[4,4,2],"d":[["货","貨"],["员","員"]]},{"L":"20","h":"定做","p":"dìngzuò","s":"動","m":"オーダーする","y":["ding","zuo"],"t":[4,4]},{"L":"20","h":"价钱","p":"jiàqian","s":"名","m":"値段","y":["jia","qian"],"t":[4,0],"d":[["价","価"],["钱","銭"]]},{"L":"20","h":"贵","p":"guì","s":"形","m":"（値段が）高い","y":["gui"],"t":[4],"d":[["贵","貴"]]},{"L":"20","h":"钱","p":"qián","s":"名","m":"お金","y":["qian"],"t":[2],"d":[["钱","銭"]]},{"L":"20","h":"加","p":"jiā","s":"動","m":"加える、プラスする","y":["jia"],"t":[1]},{"L":"20","h":"块","p":"kuài","s":"量","m":"元（口頭で使用する中国の貨幣単位）","y":["kuai"],"t":[4],"d":[["块","塊"]]},{"L":"20","h":"大概","p":"dàgài","s":"副","m":"だいたい、たぶん","y":["da","gai"],"t":[4,4]},{"L":"20","h":"天","p":"tiān","s":"名","m":"～日間","y":["tian"],"t":[1]},{"L":"20","h":"月","p":"yuè","s":"名","m":"月","y":["yue"],"t":[4]},{"L":"20","h":"号","p":"hào","s":"名","m":"～日","y":["hao"],"t":[4]},{"L":"20","h":"取","p":"qǔ","s":"動","m":"受け取る","y":["qu"],"t":[3]},{"L":"20","h":"便宜","p":"piányi","s":"形・動","m":"安い、安くする","y":["pian","yi"],"t":[2,0]},{"L":"20","h":"一共","p":"yígòng","s":"副","m":"全部で","y":["yi","gong"],"t":[2,4]},{"L":"20","h":"寄","p":"jì","s":"動","m":"送る","y":["ji"],"t":[4]},{"L":"20","h":"航空信","p":"hángkōng xìn","s":"名","m":"航空便、エアメール","y":["hang","kong","xin"],"t":[2,1,4]},{"L":"20","h":"毛","p":"máo","s":"量","m":"角（口頭で使用する中国の貨幣単位）","y":["mao"],"t":[2]},{"L":"20","h":"分","p":"fēn","s":"量","m":"分（口頭で使用する中国の貨幣単位）","y":["fen"],"t":[1]},{"L":"20","h":"后年","p":"hòunián","s":"名","m":"再来年","y":["hou","nian"],"t":[4,2],"d":[["后","後"]]},{"L":"20","h":"角","p":"jiǎo","s":"量","m":"（貨幣単位：書面）角","y":["jiao"],"t":[3]},{"L":"20","h":"明年","p":"míngnián","s":"名","m":"来年","y":["ming","nian"],"t":[2,2]},{"L":"20","h":"年","p":"nián","s":"名","m":"年","y":["nian"],"t":[2]},{"L":"20","h":"前年","p":"qiánnián","s":"名","m":"一昨年","y":["qian","nian"],"t":[2,2]},{"L":"20","h":"去年","p":"qùnián","s":"名","m":"去年","y":["qun","ian"],"t":[4,2]},{"L":"20","h":"元","p":"yuán","s":"量","m":"（貨幣単位）元","y":["yuan"],"t":[2]},{"L":"20","h":"这（个）月","p":"zhè(ge)yuè","s":"名","m":"今月","d":[["这","這"],["个","個"]]},{"L":"20","h":"钟头","p":"zhōngtóu","s":"名","m":"時間の単位 hour","y":["zhong","tou"],"t":[1,2],"d":[["钟","鐘"],["头","頭"]]},{"L":"21","h":"挑","p":"tiāo","s":"動","m":"選ぶ","y":["tiao"],"t":[1]},{"L":"21","h":"布","p":"bù","s":"名","m":"生地","y":["bu"],"t":[4]},{"L":"21","h":"种","p":"zhǒng","s":"量","m":"種類","y":["zhong"],"t":[3],"d":[["种","種"]]},{"L":"21","h":"红","p":"hóng","s":"形","m":"赤い","y":["hong"],"t":[2],"d":[["红","紅"]]},{"L":"21","h":"什么样","p":"shénmeyàng","s":"代","m":"どんな","y":["shen","me","yang"],"t":[2,0,4],"d":[["么","麼"],["样","様"]]},{"L":"21","h":"给","p":"gěi","s":"介","m":"～に","y":["gei"],"t":[3],"d":[["给","給"]]},{"L":"21","h":"量","p":"liáng","s":"動","m":"測る","y":["liang"],"t":[2]},{"L":"21","h":"下","p":"xià","s":"量","m":"ちょっと（動作を量る）","y":["xia"],"t":[4]},{"L":"21","h":"尺寸","p":"chǐcùn","s":"名","m":"寸法","y":["chi","cun"],"t":[3,4]},{"L":"21","h":"交","p":"jiāo","s":"動","m":"渡す","y":["jiao"],"t":[1]},{"L":"21","h":"用","p":"yòng","s":"介","m":"～で（手段を表わす）","y":["yong"],"t":[4]},{"L":"21","h":"信用卡","p":"xìnyòngkǎ","s":"名","m":"クレジットカード","y":["xin","yong","ka"],"t":[4,4,3]},{"L":"21","h":"付","p":"fù","s":"動","m":"払う","y":["fu"],"t":[4]},{"L":"21","h":"正","p":"zhèng","s":"副","m":"ちょうど","y":["zheng"],"t":[4]},{"L":"21","h":"漂亮","p":"piàoliang","s":"形","m":"美しい","y":["piao","liang"],"t":[4,0]},{"L":"21","h":"颜色","p":"yánsè","s":"名","m":"色","y":["yan","se"],"t":[2,4],"d":[["颜","顔"]]},{"L":"21","h":"黑","p":"hēi","s":"形","m":"黒い","y":["hei"],"t":[1]},{"L":"21","h":"蓝","p":"lán","s":"形","m":"青い","y":["lan"],"t":[2],"d":[["蓝","藍"]]},{"L":"21","h":"绿","p":"lǜ","s":"形","m":"緑の","y":["lv"],"t":[4],"d":[["绿","緑"]]},{"L":"21","h":"黄","p":"huáng","s":"形","m":"黄色い","y":["huang"],"t":[2]},{"L":"21","h":"棕色","p":"zōngsè","s":"名","m":"茶色","y":["zong","se"],"t":[1,4]},{"L":"21","h":"介绍","p":"jièshào","s":"動","m":"紹介する","y":["jie","shao"],"t":[4,4],"d":[["绍","紹"]]},{"L":"21","h":"说明","p":"shuōmíng","s":"動","m":"説明する","y":["shuo","ming"],"t":[1,2],"d":[["说","説"]]},{"L":"21","h":"刻","p":"kè","s":"動","m":"刻む、彫る","y":["ke"],"t":[4]},{"L":"21","h":"图章","p":"túzhāng","s":"名","m":"はんこ","y":["tu","zhang"],"t":[2,1],"d":[["图","図"]]},{"L":"21","h":"石头","p":"shítou","s":"名","m":"石","y":["shi","tou"],"t":[2,0],"d":[["头","頭"]]},{"L":"21","h":"人民币","p":"Rénmínbì","s":"名","m":"人民元（CNY）","y":["ren","min","bi"],"t":[2,2,4],"d":[["币","幣"]]},{"L":"22","h":"和","p":"hé","s":"連","m":"と","y":["he"],"t":[2]},{"L":"22","h":"觉得","p":"juéde","s":"動","m":"～と感ずる、（感覚的に）思う","y":["ju","e","de"],"t":[0,2,0],"d":[["觉","覚"]]},{"L":"22","h":"票","p":"piào","s":"名","m":"キップ","y":["piao"],"t":[4]},{"L":"22","h":"于是","p":"yúshì","s":"連","m":"そこで","y":["yu","shi"],"t":[2,4]},{"L":"22","h":"决定","p":"juédìng","s":"動","m":"決める","y":["ju","e","ding"],"t":[0,2,4],"d":[["决","決"]]},{"L":"22","h":"时间","p":"shíjiān","s":"名","m":"時間","y":["shi","jian"],"t":[2,1],"d":[["时","時"],["间","間"]]}];
+const NOTES={"后": "「うしろ」の意味のとき（后边儿＝後ろ側）", "里": "「なか」の意味のとき（里边儿＝裏/中）", "们": "日本語には無い字（繁体字は們）", "办": "繁体字は辦（办公＝事務）"};
+
+const GRAMMAR=[
+{L:"05",t:"「是」構文：A 是 B",b:"「〜は…です」。否定は <b>不是</b>（bú shì）。是は形容詞には使わない（06課の形容詞述語文と区別）。",ex:[["我是日本人。","Wǒ shì Rìběnrén.","私は日本人です。"],["我不是中国人。","Wǒ bú shì Zhōngguórén.","私は中国人ではありません。"]]},
+{L:"05",t:"「吗」疑問文",b:"平叙文の文末に <b>吗</b> を付けるだけ。語順は変えない。答えは 对/是 ・ 不是。",ex:[["你是日本人吗？","Nǐ shì Rìběnrén ma?","あなたは日本人ですか。"],["对，我是日本人。","Duì, wǒ shì Rìběnrén.","はい、そうです。"]]},
+{L:"05",t:"疑問詞疑問文",b:"疑問詞（哪国・什么など）を<b>聞きたい場所にそのまま置く</b>。語順は平叙文と同じで、<b>吗は付けない</b>。",ex:[["你是哪国人？","Nǐ shì nǎ guó rén?","あなたはどこの国の人ですか。"]]},
+{L:"05",t:"指示代詞 这 / 这儿",b:"这＝これ（モノ）、这儿＝ここ（場所）。「儿」が付くと場所を指す。",ex:[["这儿就是电影学院。","Zhèr jiùshì diànyǐng xuéyuàn.","ここがつまり映画学院です。"]]},
+
+{L:"06",t:"形容詞述語文：主語＋很＋形容詞",b:"形容詞が述語のとき <b>是は使わない</b>。裸で置くと比較のニュアンスが出るため、ふつう <b>很</b> を添える（このときの很は「とても」の意味が薄い）。否定は <b>不</b>＋形容詞。",ex:[["我很累。","Wǒ hěn lèi.","私は疲れています。"],["我不累。","Wǒ bú lèi.","私は疲れていません。"],["你累吗？","Nǐ lèi ma?","疲れていますか。"]]},
+{L:"06",t:"副詞の位置（也・很）",b:"副詞は<b>主語の後ろ・述語の前</b>。也と很が並ぶときは <b>也很</b> の順。",ex:[["我也很高兴。","Wǒ yě hěn gāoxìng.","私もとても嬉しいです。"]]},
+{L:"06",t:"動詞述語文と「吧」",b:"主語＋動詞＋目的語。文末の <b>吧</b> は勧誘（〜しましょう）または推量（〜でしょう？）。",ex:[["咱们走吧。","Zánmen zǒu ba.","（あなたも一緒に）行きましょう。"],["你很累吧？","Nǐ hěn lèi ba?","疲れているでしょう？"]]},
+{L:"06",t:"咱们 と 我们",b:"<b>咱们</b>＝聞き手を含む「私たち」。我们は聞き手を含まないことがある。",ex:[]},
+
+{L:"07",t:"姓 と 叫",b:"<b>姓</b>＋苗字（動詞なので是は不要）、<b>叫</b>＋フルネーム／下の名前。「您贵姓？」には <b>我姓〜</b> と答える（× 我贵姓）。",ex:[["您贵姓？","Nín guìxìng?","お名前（苗字）は？"],["我姓森，叫森理香。","Wǒ xìng Sēn, jiào Sēn Lǐxiāng.","森と申します、森理香です。"]]},
+{L:"07",t:"的：名詞を修飾する",b:"修飾語＋<b>的</b>＋名詞。所有にも使う。",ex:[["新来的留学生","xīn lái de liúxuéshēng","新しく来た留学生"],["我的护照","wǒ de hùzhào","私のパスポート"]]},
+{L:"07",t:"呢：省略疑問文",b:"名詞＋<b>呢</b>？で「〜は？」。前の話題を引き継ぐ。",ex:[["我是留学生，你呢？","Wǒ shì liúxuéshēng, nǐ ne?","私は留学生です、あなたは？"]]},
+{L:"07",t:"怎么：どのように",b:"<b>怎么</b>＋動詞で方法を尋ねる。",ex:[["你的名字怎么写？","Nǐ de míngzi zěnme xiě?","お名前はどう書きますか。"]]},
+
+{L:"08",t:"号码の読み方",b:"部屋番号・電話番号は<b>一桁ずつ</b>読む。0は 零 líng、1は <b>yāo</b>（七 qī との聞き間違いを防ぐため）。",ex:[["房间号码是八零yāo。","Fángjiān hàomǎ shì bā líng yāo.","部屋番号は801です。"]]},
+{L:"08",t:"几 と 多少",b:"<b>几</b>＝10以下を想定・<b>量詞が必須</b>。<b>多少</b>＝数の制限なし・量詞は省略できる。",ex:[["你要几个？","Nǐ yào jǐ ge?","いくつ要りますか。"],["你的房间号码是多少？","Nǐ de fángjiān hàomǎ shì duōshao?","部屋番号は何番ですか。"]]},
+{L:"08",t:"还是：選択疑問文",b:"A <b>还是</b> B？で「AそれともB？」。<b>吗は付けない</b>。",ex:[["你喝红茶还是喝咖啡？","Nǐ hē hóngchá háishi hē kāfēi?","紅茶にしますかコーヒーにしますか。"]]},
+{L:"08",t:"二 と 两",b:"数を数えるときは 二、<b>量詞の前は 两</b>。",ex:[["两个人","liǎng ge rén","2人"]]},
+
+{L:"09",t:"連動文：動作の順に動詞を並べる",b:"主語＋動詞1（＋目的語）＋動詞2（＋目的語）。<b>起きた順</b>に並べるのが鉄則。先〜，然后〜 で明示できる。",ex:[["我先整理东西，然后去。","Wǒ xiān zhěnglǐ dōngxi, ránhòu qù.","まず荷物を整理して、それから行きます。"]]},
+{L:"09",t:"怎么样：どうですか",b:"感想を尋ねる／提案する。",ex:[["这个宿舍怎么样？","Zhèige sùshè zěnmeyàng?","この宿舎はどうですか。"]]},
+{L:"09",t:"那个 / 哪个",b:"指示代詞＋量詞。会話では nèige / něige と読むことが多い。",ex:[["哪个是你的？","Něige shì nǐ de?","どれがあなたのですか。"]]},
+
+{L:"10",t:"谁：誰",b:"疑問詞なので<b>吗は付けない</b>。shéi が一般的、shuí はやや改まった発音。",ex:[["这是谁的书？","Zhè shì shéi de shū?","これは誰の本ですか。"]]},
+
+{L:"11",t:"兼語文：请＋人＋動詞",c:1,b:"请の目的語が、次の動詞の主語も兼ねる。「（人）に〜してもらう」。",ex:[["请你打开。","Qǐng nǐ dǎkāi.","開けてください。"],["请进。","Qǐng jìn.","どうぞお入りください。"]]},
+{L:"11",t:"可以：許可",b:"<b>可以</b>＋動詞で「〜してよい」。疑問は 可以〜吗？",ex:[["我可以打开吗？","Wǒ kěyǐ dǎkāi ma?","開けてもいいですか。"]]},
+{L:"11",t:"太～了",b:"程度が甚だしい。感嘆に使う。",ex:[["太好了！","Tài hǎo le!","よかった！"]]},
+{L:"11",t:"没 と 不",b:"<b>没</b>＋動詞＝まだ実現していない・事実の否定（特に 有 の否定は 没有 のみ）。<b>不</b>＝意志・習慣の否定。",ex:[["我没有CD机。","Wǒ méiyǒu xīdì jī.","CDプレーヤーを持っていません。"],["我不喝酒。","Wǒ bù hē jiǔ.","（習慣として）お酒は飲みません。"]]},
+
+{L:"12",t:"有構文：場所＋有＋モノ",b:"「（場所）に（不特定のモノ）がある」。否定は <b>没有</b>。",ex:[["房间里有两张床。","Fángjiān li yǒu liǎng zhāng chuáng.","部屋にはベッドが2台あります。"]]},
+{L:"12",t:"数詞＋量詞＋名詞",b:"中国語では名詞を数えるとき<b>必ず量詞</b>を挟む。",ex:[["一朵花儿","yì duǒ huār","1輪の花"],["两本杂志","liǎng běn zázhì","2冊の雑誌"]]},
+{L:"12",t:"哪里：謙遜の返し",b:"褒められたときの「とんでもない」。実際の発音は ná li。",ex:[["哪里哪里。","Náli náli.","とんでもないです。"]]},
+
+{L:"13",t:"在（動詞）：モノ＋在＋場所",b:"「（特定のモノ）が（場所）にある／いる」。有構文と<b>語順が逆</b>。",ex:[["食堂在教学楼下边儿。","Shítáng zài jiàoxuélóu xiàbiānr.","食堂は教室棟の下にあります。"]]},
+{L:"13",t:"在（介詞）：在＋場所＋動詞",b:"動作が行われる場所を示す。<b>動詞の前</b>に置くのがポイント。",ex:[["我在餐厅打工。","Wǒ zài cāntīng dǎgōng.","私はレストランでバイトしています。"]]},
+{L:"13",t:"有 と 在 の違い【頻出】",b:"<b>有</b>：場所→モノ（不特定・新情報）。<b>在</b>：モノ→場所（特定・既知）。",ex:[["里边儿有图书馆。","Lǐbiānr yǒu túshūguǎn.","中に図書館があります。"],["图书馆在里边儿。","Túshūguǎn zài lǐbiānr.","図書館は中にあります。"]]},
+{L:"13",t:"方位詞",b:"上/下/里/外/前/后/旁/左/右＋<b>边儿・面・头</b>。名詞＋方位詞で場所を作る（教学楼下边儿）。単音節の方位詞は単独では使いにくい。",ex:[["办公楼在操场旁边儿。","Bàngōnglóu zài cāochǎng pángbiānr.","事務棟は運動場のとなりです。"]]},
+
+{L:"14",t:"年齢の聞き方（相手で使い分け）",b:"同年代 <b>你今年多大？</b>／子ども <b>你几岁？</b>／年配の方 <b>您多大岁数？</b>",ex:[["你今年多大？","Nǐ jīnnián duōdà?","今年おいくつですか。"]]},
+{L:"14",t:"多＋形容詞：程度を尋ねる",b:"<b>多</b>＋長さ/高さ/距離などの形容詞。",ex:[["你多高？","Nǐ duō gāo?","身長はどれくらいですか。"],["这儿离车站多远？","Zhèr lí chēzhàn duō yuǎn?","ここから駅までどれくらいですか。"]]},
+{L:"14",t:"初次见面・请多关照",b:"定型の挨拶。多＝「多く」の副詞。",ex:[["初次见面，请多关照。","Chūcì jiànmiàn, qǐng duō guānzhào.","初めまして、よろしくお願いします。"]]},
+{L:"14",t:"这位：人を丁寧に指す",b:"位は人を数える敬意のある量詞。<b>× 这个人</b>（失礼になりうる）。",ex:[["这位是我的朋友。","Zhè wèi shì wǒ de péngyou.","こちらは私の友達です。"]]},
+
+{L:"15",t:"会 / 能 / 想 の使い分け【頻出】",b:"<b>会</b>＝習得してできる。<b>能</b>＝状況的にできる／能力の程度。<b>想</b>＝〜したい。否定はいずれも <b>不</b>＋助動詞。",ex:[["我会跳舞。","Wǒ huì tiàowǔ.","私は踊れます（習ったので）。"],["我现在不能跳。","Wǒ xiànzài bù néng tiào.","今は（事情があって）踊れません。"],["我想学汉语。","Wǒ xiǎng xué Hànyǔ.","中国語を学びたいです。"]]},
+{L:"15",t:"褒められたときの返し",b:"过奖＝褒めすぎです。哪里哪里 と同じ場面で使う。",ex:[["您过奖了。","Nín guòjiǎng le.","褒めすぎです。"]]},
+
+{L:"16",t:"量詞のまとめ【暗記必須】",b:"个（汎用）／位（人・敬意）／口（家族）／条（細長い）／根（やや短い細長い）／张（平ら）／封（手紙）／本（冊子）／块（かたまり）／把（取っ手）／棵（木）／朵（花）／家（店・会社）／所（建物）／件（用事・服）／种（種類）／些（複数）",ex:[["一位老师","yí wèi lǎoshī","先生1人"],["三条鱼","sān tiáo yú","魚3匹"]]},
+{L:"16",t:"一些：不定の複数",b:"「いくつかの」。数詞は 一 のみ。",ex:[["一些书","yìxiē shū","何冊かの本"]]},
+
+{L:"17",t:"時刻の言い方",b:"〜<b>点</b>（時）／〜<b>分</b>／<b>刻</b>＝15分／<b>半</b>＝30分。2時は <b>两点</b>（× 二点）。",ex:[["两点半","liǎng diǎn bàn","2時半"],["三点一刻","sān diǎn yí kè","3時15分"]]},
+{L:"17",t:"連動文（目的）：去＋場所＋動詞",b:"「〜しに行く」。目的の動詞は<b>後ろ</b>。",ex:[["我去商店买旗袍。","Wǒ qù shāngdiàn mǎi qípáor.","チャイナドレスを買いにお店へ行きます。"]]},
+{L:"17",t:"就：それなら／すぐに",b:"前の内容を受けて結論を出す。",ex:[["那就明天见吧。","Nà jiù míngtiān jiàn ba.","じゃあ明日会いましょう。"]]},
+{L:"17",t:"左右：〜くらい",b:"数量表現の<b>後ろ</b>に置く。",ex:[["七点左右起床。","Qī diǎn zuǒyòu qǐchuáng.","7時ごろ起きます。"]]},
+
+{L:"18",t:"离：A 离 B ＋ 遠近【頻出】",b:"2点間の<b>距離</b>を言う。「〜から」だが起点の「从」とは別物。",ex:[["东单离这儿远吗？","Dōngdān lí zhèr yuǎn ma?","東単はここから遠いですか。"],["不太远。","Bú tài yuǎn.","あまり遠くありません。"]]},
+{L:"18",t:"到：〜まで",b:"到＋場所。所要時間を尋ねるときによく使う。",ex:[["到东单要多长时间？","Dào Dōngdān yào duō cháng shíjiān?","東単までどれくらいかかりますか。"]]},
+{L:"18",t:"要 と 不用",b:"<b>要</b>＝〜する必要がある。その否定は <b>不用</b>（× 不要＝「〜するな」になる）。",ex:[["要坐地铁。","Yào zuò dìtiě.","地下鉄に乗る必要があります。"],["不用打针。","Búyòng dǎzhēn.","注射しなくてよいです。"]]},
+{L:"18",t:"别＋動詞：禁止",b:"「〜するな」。别＋動詞（＋了）。",ex:[["别说话。","Bié shuō huà.","おしゃべりしないで。"]]},
+
+{L:"19",t:"比較文：A 比 B ＋ 形容詞【頻出】",b:"形容詞の前に <b>很・太</b> は置けない。差を言うときは形容詞の<b>後ろ</b>に量を置く。",ex:[["长江比黄河长。","Chángjiāng bǐ Huánghé cháng.","長江は黄河より長い。"],["这个长一点儿。","Zhèige cháng yìdiǎnr.","これは少し長い。"]]},
+{L:"19",t:"有点儿 と 一点儿【最頻出】",b:"<b>有点儿＋形容詞</b>（形容詞の前）＝「（望ましくなく）少し〜だ」。<b>形容詞＋一点儿</b>（形容詞の後ろ）＝「（比較して）少し〜」。位置と評価が逆。",ex:[["有点儿长。","Yǒudiǎnr cháng.","ちょっと長すぎる。"],["长一点儿。","Cháng yìdiǎnr.","もう少し長く。"]]},
+{L:"19",t:"程度副詞：还・挺・太",b:"还＝けっこう、挺＝とても（挺〜的 の形が多い）、太〜了＝〜すぎる。",ex:[["还不错。","Hái búcuò.","けっこういいですね。"],["挺好看的。","Tǐng hǎokàn de.","とてもきれいです。"]]},
+
+{L:"20",t:"金額の言い方【暗記必須】",b:"書面：<b>元 / 角 / 分</b>、口語：<b>块 / 毛 / 分</b>。1元＝10角＝100分。",ex:[["十五块八毛","shíwǔ kuài bā máo","15.8元"],["这个多少钱？","Zhèige duōshao qián?","これはいくらですか。"]]},
+{L:"20",t:"年月日",b:"年は<b>一桁ずつ</b>読む。日は口語で <b>号</b>、書面で 日。",ex:[["二〇二六年七月十七号","èr líng èr liù nián qīyuè shíqī hào","2026年7月17日"]]},
+{L:"20",t:"時量：钟头 と 时间",b:"「1時間」は 一个钟头。所要時間は 要＋時量。",ex:[["要一个钟头。","Yào yí ge zhōngtóu.","1時間かかります。"]]},
+
+{L:"21",t:"给：介詞「〜に」",b:"<b>给＋人＋動詞</b>。動詞の前に置く。（07課の「あげる」の動詞用法と区別）",ex:[["我给你量一下。","Wǒ gěi nǐ liáng yíxià.","（あなたの）寸法を測りましょう。"]]},
+{L:"21",t:"用：手段を表す",b:"<b>用＋手段＋動詞</b>。",ex:[["我用信用卡付。","Wǒ yòng xìnyòngkǎ fù.","クレジットカードで払います。"]]},
+{L:"21",t:"動詞＋一下：ちょっと〜する",b:"動作の量を軽くし、語気をやわらげる。",ex:[["说明一下。","Shuōmíng yíxià.","少し説明してください。"]]},
+{L:"21",t:"什么样：どんな",b:"什么样＋的＋名詞。",ex:[["你要什么样的布？","Nǐ yào shénmeyàng de bù?","どんな生地が要りますか。"]]},
+
+{L:"22",t:"觉得：〜と思う",b:"<b>觉得</b>＋文（主述句をまるごと目的語にできる）。感覚的な判断。",ex:[["我觉得很漂亮。","Wǒ juéde hěn piàoliang.","私はきれいだと思います。"]]},
+{L:"22",t:"和：名詞をつなぐ【注意】",b:"<b>名詞と名詞</b>を並列する。日本語の「〜して、〜して」のように<b>動詞句はつなげない</b>。",ex:[["我和朋友一起去。","Wǒ hé péngyou yìqǐ qù.","私は友達と一緒に行きます。"]]},
+{L:"22",t:"于是 / 决定",b:"于是＝そこで（前を受けて結果へ）。决定＋動詞句。",ex:[["于是我决定去西安。","Yúshì wǒ juédìng qù Xī'ān.","そこで私は西安へ行くことに決めました。"]]}
+];
+
+
+const words = WORDS.map((w,i)=>({...w, id:i, key:w.L+"|"+w.h+"|"+w.p}));
+const state = { p:{} };   // key -> {st:'k'|'s', lv, w}
+const rec = k => (state.p[k] ||= {st:"", lv:0, w:0});
+let deck=[], idx=0, flipped=false, tab="study", ans=false;
+let starOnly=false, diffOnly=false, hlOn=true, autoplay=true;
+const $ = id=>document.getElementById(id);
+const plain = s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+
+try{ const m={name:"『話す中国語1』単語帳",short_name:"中国語単語帳",start_url:".",display:"standalone",
+  background_color:"#f7f4ee",theme_color:"#f7f4ee"};
+  $("mf").href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:"application/manifest+json"}));}catch(e){}
+
+/* ---------- 保存 ---------- */
+const KEY="hanasu-chinese-v2";
+async function save(){try{ const j=JSON.stringify(state);
+  if(window.storage) await window.storage.set(KEY,j,false); else localStorage.setItem(KEY,j);}catch(e){}}
+async function load(){try{ let v=null;
+  if(window.storage){const r=await window.storage.get(KEY,false); v=r&&r.value;} else v=localStorage.getItem(KEY);
+  if(v){const o=JSON.parse(v); state.p=o.p||{};}}catch(e){}}
+
+/* ---------- 音声 ---------- */
+let zhVoice=null;
+function pickVoice(){const vs=speechSynthesis.getVoices()||[];
+  zhVoice=vs.find(v=>/^zh[-_]CN/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;
+  $("novoice").style.display=(vs.length&&!zhVoice)?"block":"none";}
+if("speechSynthesis" in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+function say(t,btn){ if(!("speechSynthesis" in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(String(t).replace(/[（(].*?[）)]/g,"").replace(/[~～]/g,""));
+  u.lang="zh-CN"; if(zhVoice)u.voice=zhVoice; u.rate=.85;
+  if(btn){btn.classList.add("playing");u.onend=u.onerror=()=>btn.classList.remove("playing");}
+  speechSynthesis.speak(u);}
+
+/* ---------- ピンイン ---------- */
+const MK={a:"āáǎà",o:"ōóǒò",e:"ēéěè",i:"īíǐì",u:"ūúǔù",v:"ǖǘǚǜ"};
+function markTone(syl,t){
+  let s=syl;
+  if(!t) return s.replace(/v/g,"ü");
+  let v = s.includes("a")?"a" : s.includes("o")?"o" : s.includes("e")?"e" :
+          [...s].reverse().find(c=>"iuv".includes(c));
+  if(!v) return s.replace(/v/g,"ü");
+  const i=s.lastIndexOf(v);
+  return (s.slice(0,i)+MK[v][t-1]+s.slice(i+1)).replace(/v/g,"ü");
+}
+const M2N={};
+for(const b in MK)[...MK[b]].forEach((c,i)=>M2N[c]=b+(i+1));
+M2N["ü"]="v";M2N["ǹ"]="n4";M2N["ḿ"]="m2";
+function canon(s){return [...s.toLowerCase().replace(/[\s'’\-]/g,"")].map(c=>M2N[c]||c).join("").replace(/[05]/g,"");}
+const full = w => w.y ? w.y.map((s,i)=>markTone(s,w.t[i])).join("") : w.p;
+
+/* ---------- 課セレクト ---------- */
+const lessons=[...new Set(words.map(w=>w.L))].sort((a,b)=>a-b);
+const lo = lessons.map(l=>`<option value="${l}">${l}課</option>`).join("");
+$("lFrom").innerHTML=lo; $("lTo").innerHTML=lo;
+$("lFrom").value=lessons[0]; $("lTo").value=lessons[lessons.length-1];
+const lopt = `<option value="ALL">すべての課（${words.length}語）</option>`+
+  lessons.map(l=>`<option value="${l}">${l}課（${words.filter(w=>w.L===l).length}語）</option>`).join("");
+$("mLesson").innerHTML=lopt;
+$("gLesson").innerHTML=`<option value="ALL">すべての課</option>`+lessons.map(l=>`<option value="${l}">${l}課</option>`).join("");
+
+/* ---------- 出題プール ---------- */
+function inRange(w){const a=+$("lFrom").value,b=+$("lTo").value,l=+w.L;
+  return l>=Math.min(a,b)&&l<=Math.max(a,b);}
+function pool(){
+  let a=words.filter(inRange);
+  if(starOnly)a=a.filter(w=>rec(w.key).st==="s"||state.p[w.key]?.star);
+  if(diffOnly)a=a.filter(w=>w.d);
+  if($("mode").value==="tone")a=a.filter(w=>w.y&&w.t.some(t=>t>0));
+  if($("mode").value==="write")a=a.filter(w=>w.y);
+  return a;
+}
+function order(list){
+  const o=$("order").value;
+  const a=list.slice();
+  if(o==="shuffle"){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+  if(o==="lesson")return a;
+  // SRS：要復習（間違い回数の多い順）→ 未学習 → 覚えた（習熟度の低い順）
+  const rank=w=>{const r=rec(w.key);return r.st==="s"?0:(r.st?2:1);};
+  return a.map(w=>({w,r:rank(w),k:Math.random()})).sort((x,y)=>
+    x.r-y.r || (x.r===0? rec(y.w.key).w-rec(x.w.key).w : x.r===2? rec(x.w.key).lv-rec(y.w.key).lv : 0) || x.k-y.k
+  ).map(o=>o.w);
+}
+function build(){ deck=order(pool()); idx=0; flipped=false; ans=false; render(); }
+
+function progress(list){const k=list.filter(w=>rec(w.key).st==="k").length,
+  s=list.filter(w=>rec(w.key).st==="s").length;return{k,s,n:list.length-k-s,total:list.length};}
+function topBar(){const p=progress(tab==="study"?pool():words);
+  $("bK").style.width=p.total?(p.k/p.total*100)+"%":"0";
+  $("bS").style.width=p.total?(p.s/p.total*100)+"%":"0";
+  $("meter2").textContent=`覚えた ${p.k} ／ 要復習 ${p.s} ／ 未学習 ${p.n}`;}
+
+/* ---------- 字形 ---------- */
+function hz(w){ if(!hlOn||!w.d) return w.h;
+  const m=Object.fromEntries(w.d);
+  return [...w.h].map(c=>m[c]?`<span class="sd">${c}</span>`:c).join("");}
+function shapes(w){ if(!w.d)return"";
+  return `<div class="shapes">${w.d.map(([c,j])=>`<span class="chip">${c} → <b>${j}</b></span>`).join("")}</div>`;}
+
+/* ---------- 学習：状態更新 ---------- */
+function markOK(w){const r=rec(w.key);r.st="k";r.lv++;save();}
+function markNG(w){const r=rec(w.key);r.st="s";r.lv=0;r.w++;save();}
+
+/* ---------- カードモード ---------- */
+function renderCard(){
+  const c=$("card"); c.style.transform="";c.style.opacity="";
+  $("stampL").style.opacity=0;$("stampR").style.opacity=0;
+  if(!deck.length){$("front").innerHTML='<div class="mean">該当する単語がありません</div>';
+    $("back").classList.add("hidden");$("tag").textContent="";$("hint").textContent="";return;}
+  const w=deck[idx];
+  $("tag").textContent=w.L+"課";
+  $("star").classList.toggle("on",rec(w.key).st==="s");
+  const cn=$("dir").value==="cn";
+  if(cn){ $("front").innerHTML=`<div class="hanzi">${hz(w)}</div>`;
+    $("back").innerHTML=`<div class="pinyin">${w.p}</div><div class="pos">［${w.s}］</div><div class="mean">${w.m}</div>${shapes(w)}`;
+  }else{ $("front").innerHTML=`<div class="mean" style="font-size:26px">${w.m}</div><div class="pos">［${w.s}］</div>`;
+    $("back").innerHTML=`<div class="hanzi" style="font-size:46px">${hz(w)}</div><div class="pinyin">${w.p}</div>${shapes(w)}`;}
+  $("back").classList.toggle("hidden",!flipped);
+  $("hint").textContent=flipped?"":"タップでめくる ／ 左右スワイプで仕分け";
+  if(autoplay&&((cn&&!flipped)||(!cn&&flipped)))say(w.h,$("speak"));
+}
+function advance(){ if(idx<deck.length-1){idx++;flipped=false;ans=false;render();}
+  else{render();$("meter").textContent="このセットは終わりです 🎉";}}
+function know(){if(!deck.length)return;markOK(deck[idx]);advance();}
+function again(){if(!deck.length)return;markNG(deck[idx]);deck.push(deck[idx]);advance();}
+function fly(d,after){const c=$("card");c.classList.add("snap");
+  c.style.transform=`translateX(${d*window.innerWidth}px) rotate(${d*12}deg)`;c.style.opacity="0";
+  setTimeout(()=>{c.classList.remove("snap");after();},200);}
+let sx=0,sy=0,dx=0,drag=false,moved=false;
+const card=$("card");
+card.addEventListener("pointerdown",e=>{if(e.target.closest(".cardtools"))return;
+  drag=true;moved=false;sx=e.clientX;sy=e.clientY;dx=0;card.classList.remove("snap");});
+card.addEventListener("pointermove",e=>{if(!drag)return;
+  const a=e.clientX-sx,b=e.clientY-sy;
+  if(!moved&&Math.abs(a)<6&&Math.abs(b)<6)return;
+  if(!moved&&Math.abs(b)>Math.abs(a)){drag=false;return;}
+  moved=true;dx=a;card.style.transform=`translateX(${dx}px) rotate(${dx*.04}deg)`;
+  $("stampR").style.opacity=Math.max(0,Math.min(1,dx/70));
+  $("stampL").style.opacity=Math.max(0,Math.min(1,-dx/70));});
+function endDrag(){if(!drag)return;drag=false;
+  if(!moved){flipped=!flipped;renderCard();return;}
+  if(dx>80)fly(1,know); else if(dx<-80)fly(-1,again);
+  else{card.classList.add("snap");card.style.transform="";
+    $("stampL").style.opacity=0;$("stampR").style.opacity=0;
+    setTimeout(()=>card.classList.remove("snap"),220);}}
+["pointerup","pointercancel","pointerleave"].forEach(t=>card.addEventListener(t,endDrag));
+
+/* ---------- 声調テスト ---------- */
+let qOpts=[];
+function genOptions(t){
+  const idxs=t.map((v,i)=>v?i:-1).filter(i=>i>=0);
+  const key=a=>a.join(",");
+  const set=new Map([[key(t),t]]);
+  if(t.length===1){ for(const v of [1,2,3,4]) set.set(key([v]),[v]); }
+  else{ let g=0; while(set.size<4&&g++<200){ const a=t.slice();
+      idxs.forEach(i=>{a[i]=1+(Math.random()*4|0);});
+      if(key(a)!==key(t)||set.size===0) set.set(key(a),a); } }
+  const arr=[...set.values()];
+  for(let i=arr.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[arr[i],arr[j]]=[arr[j],arr[i]];}
+  return arr.slice(0,4);
+}
+function renderTone(){
+  const w=deck[idx]; if(!w)return;
+  $("qtag").textContent=w.L+"課";
+  $("qstar").classList.toggle("on",rec(w.key).st==="s");
+  $("qhanzi").innerHTML=hz(w);
+  $("qsub").textContent=w.y.join(" ");
+  $("qmean").textContent=w.m;
+  $("wInput").style.display="none";$("wtip").style.display="none";
+  $("qopts").style.display="";
+  qOpts=genOptions(w.t);
+  $("qopts").innerHTML=qOpts.map((t,i)=>
+    `<button data-i="${i}">${w.y.map((s,j)=>markTone(s,t[j])).join("")}</button>`).join("");
+  $("qfb").textContent="";$("qfb").className="fb";
+  ans=false;
+}
+$("qopts").onclick=e=>{
+  const b=e.target.closest("button"); if(!b||ans)return;
+  const w=deck[idx],t=qOpts[+b.dataset.i],ok=t.join()===w.t.join();
+  ans=true;
+  [...$("qopts").children].forEach((el,i)=>{
+    if(qOpts[i].join()===w.t.join())el.classList.add("ok");
+    else if(el===b)el.classList.add("ng");});
+  $("qfb").textContent=ok?"正解！ "+full(w):"正しくは "+full(w)+"（"+w.m+"）";
+  $("qfb").className="fb "+(ok?"ok":"ng");
+  ok?markOK(w):(markNG(w),deck.push(w));
+  say(w.h,$("qspeak")); topBar();
+  if(ok)setTimeout(()=>{if(ans)advance();},900);
+};
+
+/* ---------- 筆記モード ---------- */
+function renderWrite(){
+  const w=deck[idx]; if(!w)return;
+  $("qtag").textContent=w.L+"課";
+  $("qstar").classList.toggle("on",rec(w.key).st==="s");
+  $("qhanzi").innerHTML=hz(w);
+  $("qsub").textContent="";
+  $("qmean").textContent=w.m+"　［"+w.s+"］";
+  $("qopts").style.display="none";
+  $("wInput").style.display="";$("wtip").style.display="";
+  $("wInput").value="";$("wInput").disabled=false;
+  $("qfb").textContent="";$("qfb").className="fb";
+  ans=false; setTimeout(()=>$("wInput").focus(),50);
+}
+function checkWrite(){
+  const w=deck[idx]; if(!w||ans)return;
+  const inp=canon($("wInput").value).replace(/ü/g,"v");
+  if(!inp)return;
+  const expA=canon(full(w)).replace(/ü/g,"v");                       // 声調記号の位置に数字
+  const expB=w.y.map((s,i)=>s+(w.t[i]||"")).join("");                // 音節末に数字
+  const bare=s=>s.replace(/[0-9]/g,"").replace(/v/g,"u");
+  const uu=s=>s.replace(/v/g,"u");
+  const tonesOK = inp===expA||inp===expB||uu(inp)===uu(expA)||uu(inp)===uu(expB);
+  const spellOK = bare(inp)===bare(expB);
+  ans=true; $("wInput").disabled=true;
+  if(tonesOK){ $("qfb").textContent="正解！ "+full(w); $("qfb").className="fb ok"; markOK(w);
+    say(w.h,$("qspeak")); topBar(); setTimeout(()=>{if(ans)advance();},900); }
+  else if(spellOK){ $("qfb").innerHTML="綴りは正解、声調が違います → <b>"+full(w)+"</b>";
+    $("qfb").className="fb ng"; markNG(w); deck.push(w); say(w.h,$("qspeak")); topBar(); }
+  else{ $("qfb").innerHTML="正しくは <b>"+full(w)+"</b>"; $("qfb").className="fb ng";
+    markNG(w); deck.push(w); say(w.h,$("qspeak")); topBar(); }
+}
+$("wInput").addEventListener("keydown",e=>{ if(e.key!=="Enter")return;
+  e.preventDefault(); ans?advance():checkWrite(); });
+$("qskip").onclick=()=>{const w=deck[idx];if(!w)return;
+  if(!ans){ans=true;$("wInput").disabled=true;markNG(w);deck.push(w);
+    $("qfb").innerHTML="答え： <b>"+full(w)+"</b>　"+w.m;$("qfb").className="fb ng";
+    [...$("qopts").children].forEach((el,i)=>{if(qOpts[i]&&qOpts[i].join()===w.t.join())el.classList.add("ok");});
+    say(w.h,$("qspeak"));topBar();}
+  else advance();};
+$("qnext").onclick=()=>advance();
+$("qspeak").onclick=()=>{const w=deck[idx];if(w)say(w.h,$("qspeak"));};
+$("qstar").onclick=()=>{const w=deck[idx];if(!w)return;const r=rec(w.key);
+  r.st=r.st==="s"?"":"s";save();render();};
+
+/* ---------- 描画切替 ---------- */
+function render(){
+  topBar();
+  const m=$("mode").value;
+  $("meter").textContent=deck.length?`${idx+1} / ${deck.length}`:"0 / 0";
+  $("card").style.display=m==="card"?"":"none";
+  $("quiz").style.display=m==="card"?"none":"";
+  $("cardNav").style.display=m==="card"?"":"none";
+  $("quizNav").style.display=m==="card"?"none":"";
+  $("dir").style.display=m==="card"?"":"none";
+  if(!deck.length&&m!=="card"){
+    $("qhanzi").textContent="—";$("qsub").textContent="";$("qmean").textContent="該当する単語がありません";
+    $("qopts").innerHTML="";$("wInput").style.display="none";$("qfb").textContent="";return;}
+  if(m==="card")renderCard(); else if(m==="tone")renderTone(); else renderWrite();
+}
+$("speak").onclick=e=>{e.stopPropagation();const w=deck[idx];if(w)say(w.h,$("speak"));};
+$("star").onclick=e=>{e.stopPropagation();const w=deck[idx];if(!w)return;const r=rec(w.key);
+  r.st=r.st==="s"?"":"s";save();render();};
+$("prev").onclick=()=>{if(idx>0){idx--;flipped=false;ans=false;render();}};
+$("know").onclick=()=>fly(1,know);
+$("again").onclick=()=>fly(-1,again);
+$("mode").onchange=()=>{speechSynthesis.cancel();build();};
+$("order").onchange=build; $("lFrom").onchange=build; $("lTo").onchange=build;
+$("dir").onchange=()=>{flipped=false;render();};
+$("starOnly").onclick=e=>{starOnly=!starOnly;e.target.classList.toggle("on",starOnly);build();};
+$("diffOnly").onclick=e=>{diffOnly=!diffOnly;e.target.classList.toggle("on",diffOnly);build();};
+$("hl").onclick=e=>{hlOn=!hlOn;e.target.classList.toggle("on",hlOn);render();};
+$("autoplay").onclick=e=>{autoplay=!autoplay;e.target.classList.toggle("on",autoplay);};
+
+/* ---------- 文法 ---------- */
+function renderGram(){
+  const v=$("gLesson").value;
+  const list=GRAMMAR.filter(g=>v==="ALL"||g.L===v);
+  $("gramList").innerHTML=list.map((g,i)=>`<div class="gcard">
+    <h3><span class="gl">${g.L}課</span>${g.t}</h3><p>${g.b}</p>
+    ${(g.ex||[]).map(e=>`<div class="gex"><div class="t"><div class="c">${e[0]}</div>
+      <div class="y">${e[1]}</div><div class="j">${e[2]}</div></div>
+      <button class="icon spk" data-say="${e[0]}">🔊</button></div>`).join("")}
+  </div>`).join("");
+  $("meter").textContent=list.length+" 項目";
+}
+$("gramList").onclick=e=>{const s=e.target.closest("[data-say]");if(s)say(s.dataset.say,s);};
+$("gLesson").onchange=renderGram;
+
+/* ---------- 一覧 ---------- */
+function renderMenu(){
+  const p=progress(words);
+  $("sK").textContent=p.k;$("sS").textContent=p.s;$("sN").textContent=p.n;
+  $("lessonList").innerHTML=lessons.map(l=>{const q=progress(words.filter(w=>w.L===l));
+    return `<div class="lrow" data-lesson="${l}"><span class="name">${l}課</span>
+      <span class="bar"><i class="g" style="width:${q.k/q.total*100}%"></i><i class="a" style="width:${q.s/q.total*100}%"></i></span>
+      <span class="pct">${q.k}/${q.total}</span></div>`;}).join("");
+  let list=words.slice();
+  const lv=$("mLesson").value; if(lv!=="ALL")list=list.filter(w=>w.L===lv);
+  const f=$("mFilter").value;
+  if(f==="k")list=list.filter(w=>rec(w.key).st==="k");
+  else if(f==="s"||f==="star")list=list.filter(w=>rec(w.key).st==="s");
+  else if(f==="n")list=list.filter(w=>!rec(w.key).st);
+  else if(f==="diff")list=list.filter(w=>w.d);
+  const raw=$("search").value.trim(), q=plain(raw);
+  if(raw)list=list.filter(w=>w.h.includes(raw)||plain(w.p).includes(q)||w.m.includes(raw));
+  if($("mSort").value==="pinyin")list.sort((a,b)=>plain(a.p).localeCompare(plain(b.p)));
+  $("wordList").innerHTML=list.length?list.map(w=>{
+    const st=rec(w.key).st;
+    const sh=w.d?`　<em>${w.d.map(d=>d[0]+"→"+d[1]).join("・")}</em>`:"";
+    return `<div class="wrow"><span class="dot ${st}"></span>
+      <span class="wmain" data-jump="${w.id}"><span class="wtop">
+        <span class="h">${hz(w)}</span><span class="p">${w.p}</span>
+        <span class="l">${w.L}課</span><span class="ps">［${w.s}］</span></span>
+        <span class="wsub">${w.m}${sh}</span></span>
+      <button class="icon spk" data-say="${w.h}">🔊</button>
+      <button class="icon ${st==="s"?"on":""}" data-star="${w.key}">★</button></div>`;}).join("")
+    :'<div class="wrow" style="color:var(--ink-soft);font-size:13px">該当なし</div>';
+  topBar();
+}
+$("wordList").onclick=e=>{
+  const s=e.target.closest("[data-say]"); if(s){say(s.dataset.say,s);return;}
+  const st=e.target.closest("[data-star]");
+  if(st){const r=rec(st.dataset.star);r.st=r.st==="s"?"":"s";save();renderMenu();return;}
+  const j=e.target.closest("[data-jump]"); if(j)jumpTo(+j.dataset.jump);};
+$("lessonList").onclick=e=>{const r=e.target.closest("[data-lesson]");if(!r)return;
+  $("lFrom").value=r.dataset.lesson;$("lTo").value=r.dataset.lesson;
+  starOnly=diffOnly=false;$("starOnly").classList.remove("on");$("diffOnly").classList.remove("on");
+  setTab("study");build();};
+function jumpTo(id){const w=words.find(x=>x.id===id);
+  $("mode").value="card";$("lFrom").value=w.L;$("lTo").value=w.L;
+  starOnly=diffOnly=false;$("starOnly").classList.remove("on");$("diffOnly").classList.remove("on");
+  setTab("study");build();
+  const i=deck.findIndex(x=>x.id===id); if(i>=0){idx=i;flipped=false;render();}}
+["mFilter","mSort","mLesson"].forEach(i=>$(i).onchange=renderMenu);
+$("search").oninput=renderMenu;
+$("reset").onclick=()=>{if(!confirm("学習状況をすべて消します。よろしいですか？"))return;
+  state.p={};save();renderMenu();};
+
+/* ---------- タブ ---------- */
+function setTab(t){
+  tab=t; speechSynthesis.cancel();
+  $("tabStudy").classList.toggle("on",t==="study");
+  $("tabGram").classList.toggle("on",t==="gram");
+  $("tabMenu").classList.toggle("on",t==="menu");
+  $("studyview").style.display=t==="study"?"":"none";
+  $("gramview").style.display=t==="gram"?"":"none";
+  $("menuview").style.display=t==="menu"?"":"none";
+  $("studyCtl").style.display=t==="study"?"":"none";
+  $("gramCtl").style.display=t==="gram"?"":"none";
+  if(t==="study")render(); else if(t==="gram")renderGram(); else renderMenu();
+}
+$("tabStudy").onclick=()=>setTab("study");
+$("tabGram").onclick=()=>setTab("gram");
+$("tabMenu").onclick=()=>setTab("menu");
+document.addEventListener("keydown",e=>{
+  if(tab!=="study")return;
+  if(document.activeElement===$("wInput"))return;
+  const m=$("mode").value;
+  if(e.key===" "&&m==="card"){e.preventDefault();flipped=!flipped;renderCard();}
+  if(e.key==="ArrowRight")m==="card"?$("know").click():advance();
+  if(e.key==="ArrowLeft"&&m==="card")$("again").click();
+  if(m==="tone"&&/^[1-4]$/.test(e.key)){const b=$("qopts").children[+e.key-1];if(b)b.click();}
+  if(e.key.toLowerCase()==="s"){const w=deck[idx];if(w)say(w.h,$("speak"));}});
+load().then(build);
+</script>
+</body>
+</html>
