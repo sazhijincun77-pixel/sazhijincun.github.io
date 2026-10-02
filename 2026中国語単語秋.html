@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="中国語2単語帳">
+<meta name="theme-color" content="#f7f4ee">
+<link rel="manifest" id="mf">
+<title>『話す中国語2』単語帳</title>
+<style>
+  :root{--ink:#15202b;--ink-soft:#4a5a68;--paper:#f7f4ee;--card:#fff;
+    --jade:#1f7a5e;--seal:#b83a2e;--amber:#c98a12;--line:#dcd6c9}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);
+    font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+    -webkit-text-size-adjust:100%;padding:0 0 48px}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px}
+  header{padding:12px 0 10px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:var(--paper);z-index:10}
+  h1{font-size:15px;letter-spacing:.04em;font-weight:700}
+  h1 small{font-size:10px;color:var(--ink-soft);font-weight:400;letter-spacing:.08em;margin-left:6px}
+  .tabs{display:flex;gap:6px;margin-top:8px}
+  .tabs button{flex:1;padding:8px 0;font-size:13px}
+  select,button,input{font:inherit;font-size:12.5px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);border-radius:8px;padding:6px 8px}
+  button,select{cursor:pointer}
+  button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .controls{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:8px}
+  .controls span{font-size:11px;color:var(--ink-soft)}
+  .meter{font-size:11px;color:var(--ink-soft);letter-spacing:.06em;margin-top:8px;display:flex;justify-content:space-between;gap:8px}
+  .bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:5px;display:flex}
+  .bar i{display:block;height:100%;transition:width .3s}
+  .bar .g{background:var(--jade)}.bar .a{background:var(--amber)}
+
+  .stage{padding:20px 16px 0;max-width:680px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;min-height:290px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:40px 20px 30px;user-select:none;position:relative;touch-action:pan-y;will-change:transform}
+  #card{cursor:pointer}
+  .card.snap{transition:transform .22s ease,opacity .22s ease}
+  .tag{position:absolute;top:12px;left:14px;font-size:11px;letter-spacing:.1em;color:var(--seal);
+    border:1px solid currentColor;border-radius:4px;padding:1px 6px}
+  .cardtools{position:absolute;top:8px;right:8px;display:flex;gap:2px}
+  .icon{border:none;background:none;font-size:19px;line-height:1;color:var(--line);padding:5px 7px;border-radius:8px;cursor:pointer}
+  .icon.on{color:#e0a400}
+  .icon.spk{color:var(--ink-soft);font-size:17px}
+  .icon.spk.playing{color:var(--jade)}
+  .stamp{position:absolute;top:52px;font-size:13px;font-weight:700;letter-spacing:.14em;
+    border:2px solid currentColor;border-radius:8px;padding:4px 10px;opacity:0;pointer-events:none}
+  #stampR{right:18px;color:var(--jade);transform:rotate(9deg)}
+  #stampL{left:18px;color:var(--seal);transform:rotate(-9deg)}
+  .hanzi{font-size:62px;line-height:1.2;font-weight:600;letter-spacing:.04em}
+  .pinyin{font-size:26px;color:var(--jade);margin-top:14px;font-family:"Times New Roman",serif}
+  .pos{font-size:12px;color:var(--ink-soft);margin-top:12px;letter-spacing:.12em}
+  .mean{font-size:20px;margin-top:8px;line-height:1.5}
+  .hint{font-size:11px;color:var(--ink-soft);margin-top:18px;letter-spacing:.06em;min-height:14px}
+  .hidden{visibility:hidden}
+  .sd{color:var(--seal);text-decoration:underline dotted 2px;text-underline-offset:6px}
+  .shapes{margin-top:16px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+  .chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--paper)}
+  .chip b{color:var(--seal)}
+  .nav{display:flex;gap:8px;margin:12px auto 0;max-width:680px;padding:0 16px}
+  .nav button{flex:1;padding:12px 0;font-size:14px}
+  .nav button.know{border-color:var(--jade);color:var(--jade)}
+  .nav button.again{border-color:var(--seal);color:var(--seal)}
+  .nav button.prev{flex:.7;color:var(--ink-soft)}
+
+  /* quiz */
+  .qbig{font-size:58px;font-weight:600;letter-spacing:.04em}
+  .qsub{font-size:14px;color:var(--ink-soft);margin-top:10px;letter-spacing:.14em;font-family:"Times New Roman",serif}
+  .qmean{font-size:13px;color:var(--ink-soft);margin-top:4px}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px;width:100%;max-width:380px}
+  .opts button{padding:13px 4px;font-size:19px;font-family:"Times New Roman",serif;color:var(--jade)}
+  .opts button.ok{background:var(--jade);color:#fff;border-color:var(--jade)}
+  .opts button.ng{background:var(--seal);color:#fff;border-color:var(--seal)}
+  .fb{font-size:13px;margin-top:16px;min-height:18px;letter-spacing:.04em}
+  .fb.ok{color:var(--jade)}.fb.ng{color:var(--seal)}
+  #wInput{width:100%;max-width:340px;margin-top:18px;text-align:center;font-size:22px;
+    font-family:"Times New Roman",serif;padding:10px;letter-spacing:.05em}
+  .wtip{font-size:11px;color:var(--ink-soft);margin-top:8px;line-height:1.6}
+
+  /* menu / grammar */
+  .summary{display:flex;gap:8px;margin-top:14px}
+  .stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+  .stat b{display:block;font-size:22px;font-weight:600}
+  .stat span{font-size:10px;color:var(--ink-soft);letter-spacing:.1em}
+  .stat.g b{color:var(--jade)}.stat.a b{color:var(--amber)}
+  h2{font-size:11px;letter-spacing:.14em;color:var(--ink-soft);font-weight:500;margin:20px 0 6px}
+  .lrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .lrow .name{font-size:14px;width:52px;flex:none}
+  .lrow .bar{flex:1;margin:0}
+  .lrow .pct{font-size:11px;color:var(--ink-soft);width:52px;text-align:right;flex:none}
+  .wrow{display:flex;align-items:flex-start;gap:8px;padding:10px 2px;border-bottom:1px solid var(--line)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none;margin-top:7px}
+  .dot.k{background:var(--jade)}.dot.s{background:var(--amber)}
+  .wmain{flex:1;min-width:0;cursor:pointer}
+  .wtop{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .wtop .h{font-size:19px;font-weight:600}
+  .wtop .p{font-size:13px;color:var(--jade);font-family:"Times New Roman",serif}
+  .wtop .l{font-size:10px;color:var(--seal);border:1px solid currentColor;border-radius:3px;padding:0 4px}
+  .wtop .ps{font-size:10px;color:var(--ink-soft);letter-spacing:.08em}
+  .wsub{font-size:12px;color:var(--ink-soft);margin-top:3px;line-height:1.45}
+  .wsub em{font-style:normal;color:var(--seal)}
+  .wrow .icon{font-size:16px;padding:4px 5px;flex:none}
+  .gcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px}
+  .gcard h3{font-size:15px;font-weight:700;letter-spacing:.02em}
+  .gcard .gl{font-size:10px;color:var(--seal);border:1px solid currentColor;border-radius:3px;padding:0 4px;margin-right:6px}
+  .gcard p{font-size:13px;line-height:1.75;color:var(--ink-soft);margin-top:7px}
+  .gcard p b{color:var(--ink)}
+  .gex{border-left:3px solid var(--line);padding:6px 0 6px 10px;margin-top:9px;display:flex;align-items:flex-start;gap:6px}
+  .gex .t{flex:1;min-width:0}
+  .gex .c{font-size:16px}
+  .gex .y{font-size:12px;color:var(--jade);font-family:"Times New Roman",serif;margin-top:2px}
+  .gex .j{font-size:12px;color:var(--ink-soft);margin-top:2px}
+  .fixnote{background:#fffbe9;border:1px solid #e8dda8;border-radius:8px;padding:10px 12px;
+    font-size:11.5px;line-height:1.7;margin-top:16px;color:#5c4a1a}
+  .novoice{background:#fdeeed;border:1px solid #e8b8b3;color:#7a2a22;border-radius:8px;
+    padding:8px 12px;font-size:11.5px;line-height:1.6;margin-top:8px;display:none}
+  #search{width:100%;margin-top:6px;font-size:13px}
+  @media(max-width:430px){.hanzi{font-size:52px}.qbig{font-size:48px}.pinyin{font-size:22px}}
+  @media(prefers-reduced-motion:reduce){.card,.card.snap{transition:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>『話す中国語2』単語帳<small>01–20課</small></h1>
+  <div class="tabs">
+    <button id="tabStudy" class="on">学習</button>
+    <button id="tabGram" style="display:none">文法</button>
+    <button id="tabMenu">一覧</button>
+  </div>
+
+  <div id="studyCtl">
+    <div class="controls">
+      <select id="mode">
+        <option value="card">カード</option>
+        <option value="tone">声調テスト</option>
+        <option value="write">筆記（ピンイン入力）</option>
+      </select>
+      <span>課</span><select id="lFrom"></select><span>〜</span><select id="lTo"></select>
+      <select id="order">
+        <option value="srs">出題順：要復習を優先</option>
+        <option value="lesson">出題順：課の順</option>
+        <option value="shuffle">出題順：シャッフル</option>
+        <option value="weak">出題順：弱点集中（間違い多い順）</option>
+      </select>
+    </div>
+    <div class="controls">
+      <select id="dir">
+        <option value="cn">中国語 → 日本語</option>
+        <option value="jp">日本語 → 中国語</option>
+      </select>
+      <button id="starOnly">★のみ</button>
+      <button id="diffOnly">字形が違う語</button>
+      <button id="hl" class="on">字形ハイライト</button>
+      <button id="autoplay" class="on">🔊 自動</button>
+      <select id="rate"><option value="0.5">🔊 0.5×</option><option value="0.7">0.7×</option><option value="0.85" selected>0.85×</option><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+      <button id="speedBtn">▶ スピード</button>
+      <select id="spd"><option value="1">1秒送り</option><option value="2" selected>2秒送り</option><option value="3">3秒送り</option></select>
+    </div>
+  </div>
+
+  <div id="gramCtl" class="controls" style="display:none">
+    <select id="gLesson"></select>
+  </div>
+
+  <div class="meter"><span id="meter">0 / 0</span><span id="meter2"></span></div>
+  <div class="bar"><i id="bK" class="g"></i><i id="bS" class="a"></i></div>
+  <div class="novoice" id="novoice">この端末に中国語の音声が見つかりません。端末の設定で中国語（普通話）の音声を追加してください。</div>
+</div></header>
+
+<!-- 学習 -->
+<div id="studyview">
+  <div class="stage">
+    <!-- カード -->
+    <div class="card" id="card">
+      <span class="tag" id="tag"></span>
+      <span class="stamp" id="stampL">もう一度</span>
+      <span class="stamp" id="stampR">覚えた</span>
+      <div class="cardtools">
+        <button class="icon spk" id="speak">🔊</button>
+        <button class="icon" id="star">★</button>
+      </div>
+      <div id="front"></div>
+      <div id="back" class="hidden"></div>
+      <div class="hint" id="hint"></div>
+    </div>
+    <!-- クイズ／筆記 -->
+    <div class="card" id="quiz" style="display:none">
+      <span class="tag" id="qtag"></span>
+      <div class="cardtools"><button class="icon spk" id="qspeak">🔊</button><button class="icon" id="qstar">★</button></div>
+      <div class="qbig" id="qhanzi"></div>
+      <div class="qsub" id="qsub"></div>
+      <div class="qmean" id="qmean"></div>
+      <div class="opts" id="qopts"></div>
+      <input id="wInput" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="fa3guo2 / fǎguó" style="display:none">
+      <div class="fb" id="qfb"></div>
+      <div class="wtip" id="wtip" style="display:none">声調は数字（fa3guo2）でもピンイン記号（fǎguó）でもOK。Enterで判定。</div>
+    </div>
+  </div>
+  <div class="nav" id="cardNav">
+    <button class="again" id="again">← もう一度</button>
+    <button class="prev" id="prev">前へ</button>
+    <button class="know" id="know">覚えた →</button>
+  </div>
+  <div class="nav" id="quizNav" style="display:none">
+    <button id="qskip">わからない</button>
+    <button class="know" id="qnext">次へ →</button>
+  </div>
+</div>
+
+<!-- 文法 -->
+<div id="gramview" class="wrap" style="display:none">
+  <div id="gramList"></div>
+  <div class="fixnote">文法カードは単語リストと授業範囲から再構成した要点です。教科書・講義の内容と食い違う箇所があれば教えてください、直します。</div>
+</div>
+
+<!-- 一覧 -->
+<div id="menuview" class="wrap" style="display:none">
+  <div class="summary">
+    <div class="stat g"><b id="sK">0</b><span>覚えた</span></div>
+    <div class="stat a"><b id="sS">0</b><span>要復習</span></div>
+    <div class="stat"><b id="sN">0</b><span>未学習</span></div>
+  </div>
+  <div id="dash"></div>
+  <h2>課ごとの進み具合（タップでその課を学習）</h2>
+  <div id="lessonList"></div>
+  <h2>単語一覧</h2>
+  <div class="controls" style="margin-bottom:0">
+    <select id="mLesson"></select>
+    <select id="mFilter">
+      <option value="all">すべての状態</option>
+      <option value="k">覚えた</option><option value="s">要復習</option>
+      <option value="n">未学習</option><option value="star">★のみ</option>
+      <option value="diff">日本語と字形が違う語</option>
+    </select>
+    <select id="mSort"><option value="lesson">課順</option><option value="pinyin">ピンイン順</option></select>
+    <button id="reset">状況をリセット</button>
+  </div>
+  <input id="search" type="search" placeholder="簡体字・ピンイン・日本語で検索">
+  <div id="wordList"></div>
+  <div class="fixnote"><b>修正済み：</b>法国 <b>Fǎguó</b>（原表記の声調誤りを修正）／回来・回去を「帰ってくる／帰ってゆく」に修正／皮儿の意味を「皮」に修正。人名（小明・袁・丸山）は除外、同一課内の重複は統合。</div>
+</div>
+
+<script>
+const WORDS=[{"L":"01","h":"晚上","p":"wǎnshang","s":"名","m":"夜","y":["wan","shang"],"t":[3,0],"d":[["晚","晩"]]},{"L":"01","h":"事","p":"shì","s":"名","m":"用事","y":["shi"],"t":[4]},{"L":"01","h":"了","p":"le","s":"助","m":"～した","y":["le"],"t":[0]},{"L":"01","h":"杂技","p":"zájì","s":"名","m":"雑技（サーカス）","y":["za","ji"],"t":[2,4],"d":[["杂","雑"]]},{"L":"01","h":"票","p":"piào","s":"名","m":"キップ","y":["piao"],"t":[4]},{"L":"01","h":"开演","p":"kāiyǎn","s":"動","m":"開演する","y":["kai","yan"],"t":[1,3],"d":[["开","開"]]},{"L":"01","h":"吃","p":"chī","s":"動","m":"食べる","y":["chi"],"t":[1]},{"L":"01","h":"饭","p":"fàn","s":"名","m":"ご飯","y":["fan"],"t":[4],"d":[["饭","飯"]]},{"L":"01","h":"还","p":"hái","s":"副","m":"まだ","y":["hai"],"t":[2],"d":[["还","還"]]},{"L":"01","h":"碗","p":"wǎn","s":"量","m":"お椀、～杯（ご飯茶碗）","y":["wan"],"t":[3]},{"L":"01","h":"报纸","p":"bàozhǐ","s":"名","m":"新聞","y":["bao","zhi"],"t":[4,3],"d":[["报","報"],["纸","紙"]]},{"L":"01","h":"洗脸","p":"xǐ liǎn","s":"組","m":"顔を洗う","y":["xi","lian"],"t":[3,3],"d":[["脸","臉"]]},{"L":"01","h":"刷牙","p":"shuā yá","s":"組","m":"歯を磨く","y":["shua","ya"],"t":[1,2]},{"L":"01","h":"洗澡","p":"xǐzǎo","s":"動","m":"シャワーを浴びる","y":["xi","zao"],"t":[3,3]},{"L":"01","h":"打球","p":"dǎ qiú","s":"組","m":"球技をする","y":["da","qiu"],"t":[3,2]},{"L":"01","h":"操场","p":"cāochǎng","s":"名","m":"グランド","y":["cao","chang"],"t":[1,3],"d":[["场","場"]]},{"L":"01","h":"饭店","p":"fàndiàn","s":"名","m":"ホテル","y":["fan","dian"],"t":[4,4],"d":[["饭","飯"]]},{"L":"01","h":"王府井","p":"wángfǔjǐng","s":"名","m":"王府井（北京の地名）","y":["wang","fu","jing"],"t":[2,3,3]},{"L":"01","h":"早上","p":"zǎoshang","s":"名","m":"朝","y":["zao","shang"],"t":[3,0]},{"L":"01","h":"面包","p":"miànbāo","s":"名","m":"パン","y":["mian","bao"],"t":[4,1]},{"L":"01","h":"片","p":"piàn","s":"量","m":"～枚（パンなどを数える）","y":["pian"],"t":[4]},{"L":"01","h":"杯","p":"bēi","s":"量","m":"～杯（コップや湯飲み茶碗）","y":["bei"],"t":[1]},{"L":"02","h":"在","p":"zài","s":"副","m":"～しているところだ","y":["zai"],"t":[4]},{"L":"02","h":"干","p":"gàn","s":"動","m":"する、やる","y":["gan"],"t":[4]},{"L":"02","h":"照片(儿)","p":"zhàopiàn(r)","s":"名","m":"写真（片はrが付くと1声、付かないと4声）","y":["zhao","pian"],"t":[4,4],"d":[["儿","児"]]},{"L":"02","h":"要","p":"yào","s":"助動","m":"～するだろう","y":["yao"],"t":[4]},{"L":"02","h":"演","p":"yǎn","s":"動","m":"演ずる","y":["yan"],"t":[3]},{"L":"02","h":"渴","p":"kě","s":"形","m":"喉が渇いている","y":["ke"],"t":[3],"d":[["渴","渇"]]},{"L":"02","h":"差","p":"chà","s":"動","m":"差がある、～前","y":["cha"],"t":[4]},{"L":"02","h":"快~了","p":"kuài~le","s":"組","m":"もうすぐ～だ"},{"L":"02","h":"节目","p":"jiémù","s":"名","m":"演目、番組","y":["jie","mu"],"t":[2,4],"d":[["节","節"]]},{"L":"02","h":"节目单","p":"jiémùdān","s":"名","m":"プログラム","y":["jie","mu","dan"],"t":[2,4,1],"d":[["节","節"],["单","単"]]},{"L":"02","h":"大学生","p":"dàxuéshēng","s":"名","m":"大学生","y":["da","xue","sheng"],"t":[4,2,1]},{"L":"02","h":"酒","p":"jiǔ","s":"名","m":"お酒","y":["jiu"],"t":[3]},{"L":"02","h":"学习","p":"xuéxí","s":"動","m":"学ぶ","y":["xue","xi"],"t":[2,2],"d":[["习","習"]]},{"L":"02","h":"锻炼","p":"duànliàn","s":"動","m":"鍛錬する、スポーツをする","y":["duan","lian"],"t":[4,4],"d":[["锻","鍛"],["炼","錬"]]},{"L":"02","h":"休息","p":"xiūxi","s":"動","m":"休む","y":["xiu","xi"],"t":[1,0]},{"L":"02","h":"饿","p":"è","s":"形","m":"お腹が空いている","y":["e"],"t":[4],"d":[["饿","餓"]]},{"L":"02","h":"困","p":"kùn","s":"形","m":"眠い","y":["kun"],"t":[4]},{"L":"02","h":"胖","p":"pàng","s":"形","m":"太っている","y":["pang"],"t":[4]},{"L":"02","h":"身体","p":"shēntǐ","s":"名","m":"体","y":["shen","ti"],"t":[1,3]},{"L":"02","h":"孩子","p":"háizi","s":"名","m":"子供","y":["hai","zi"],"t":[2,0]},{"L":"02","h":"已经","p":"yǐjīng","s":"副","m":"既に、もう","y":["yi","jing"],"t":[3,1],"d":[["经","経"]]},{"L":"02","h":"这么","p":"zhème","s":"代","m":"こんなに","y":["zhe","me"],"t":[4,0],"d":[["这","這"],["么","麼"]]},{"L":"02","h":"填","p":"tián","s":"動","m":"記入する、埋める","y":["tian"],"t":[2]},{"L":"02","h":"申报单","p":"shēnbàodān","s":"名","m":"申告書","y":["shen","bao","dan"],"t":[1,4,1],"d":[["报","報"],["单","単"]]},{"L":"03","h":"杂技团","p":"zájìtuán","s":"名","m":"雑技団","y":["za","ji","tuan"],"t":[2,4,2],"d":[["杂","雑"],["团","団"]]},{"L":"03","h":"更","p":"gèng","s":"副","m":"もっと","y":["geng"],"t":[4]},{"L":"03","h":"已经","p":"yǐjīng","s":"副","m":"もう、既に","y":["yi","jing"],"t":[3,1],"d":[["经","経"]]},{"L":"03","h":"最","p":"zuì","s":"副","m":"最も","y":["zui"],"t":[4]},{"L":"03","h":"精彩","p":"jīngcǎi","s":"形","m":"見ごたえがある","y":["jing","cai"],"t":[1,3]},{"L":"03","h":"最后","p":"zuìhòu","s":"名","m":"最後","y":["zui","hou"],"t":[4,4],"d":[["后","後"]]},{"L":"03","h":"可能","p":"kěnéng","s":"副","m":"たぶん、～かもしれない","y":["ke","neng"],"t":[3,2]},{"L":"03","h":"节","p":"jié","s":"量","m":"～時限（授業を数える）","y":["jie"],"t":[2],"d":[["节","節"]]},{"L":"03","h":"饺子","p":"jiǎozi","s":"名","m":"ギョーザ","y":["jiao","zi"],"t":[3,0],"d":[["饺","餃"]]},{"L":"03","h":"肉","p":"ròu","s":"名","m":"肉","y":["rou"],"t":[4]},{"L":"03","h":"鱼","p":"yú","s":"名","m":"魚","y":["yu"],"t":[2],"d":[["鱼","魚"]]},{"L":"03","h":"蔬菜","p":"shūcài","s":"名","m":"野菜","y":["shu","cai"],"t":[1,4]},{"L":"03","h":"水果","p":"shuǐguǒ","s":"名","m":"果物","y":["shui","guo"],"t":[3,3]},{"L":"03","h":"学","p":"xué","s":"動","m":"学ぶ","y":["xue"],"t":[2]},{"L":"04","h":"过","p":"guo","s":"助","m":"～したことがある","y":["guo"],"t":[0],"d":[["过","過"]]},{"L":"04","h":"要是","p":"yàoshi","s":"連","m":"もしも","y":["yao","shi"],"t":[4,0]},{"L":"04","h":"一定","p":"yídìng","s":"副","m":"きっと","y":["yi","ding"],"t":[2,4]},{"L":"04","h":"会","p":"huì","s":"助動","m":"～するはずだ","y":["hui"],"t":[4]},{"L":"04","h":"照相","p":"zhàoxiàng","s":"動","m":"写真を撮る","y":["zhao","xiang"],"t":[4,4]},{"L":"04","h":"大概","p":"dàgài","s":"副","m":"たぶん","y":["da","gai"],"t":[4,4]},{"L":"04","h":"请问","p":"qǐngwèn","s":"組","m":"お尋ねしますが","y":["qing","wen"],"t":[3,4],"d":[["请","請"],["问","問"]]},{"L":"04","h":"演员","p":"yǎnyuán","s":"名","m":"役者、俳優、女優","y":["yan","yuan"],"t":[3,2],"d":[["员","員"]]},{"L":"04","h":"麻烦","p":"máfan","s":"動・形","m":"煩わせる、煩わしい","y":["ma","fan"],"t":[2,0],"d":[["烦","煩"]]},{"L":"04","h":"摁","p":"èn","s":"動","m":"(指で)押す","y":["en"],"t":[4]},{"L":"04","h":"就","p":"jiù","s":"動","m":"～ならば～","y":["jiu"],"t":[4]},{"L":"04","h":"外国","p":"wàiguó","s":"名","m":"外国","y":["wai","guo"],"t":[4,2]},{"L":"04","h":"美国","p":"Měiguó","s":"名","m":"アメリカ","y":["mei","guo"],"t":[3,2]},{"L":"04","h":"英国","p":"Yīngguó","s":"名","m":"イギリス","y":["ying","guo"],"t":[1,2]},{"L":"04","h":"法国","p":"Fǎguó","s":"名","m":"フランス","y":["fa","guo"],"t":[3,2]},{"L":"04","h":"旅行","p":"lǚxíng","s":"動","m":"旅行する","y":["lv","xing"],"t":[3,2]},{"L":"04","h":"名牌(儿)","p":"míngpái(r)","s":"名","m":"ブランド","y":["ming","pai"],"t":[2,2],"d":[["儿","児"]]},{"L":"04","h":"汽车","p":"qìchē","s":"名","m":"車","y":["qi","che"],"t":[4,1],"d":[["车","車"]]},{"L":"04","h":"衣服","p":"yīfu","s":"名","m":"服","y":["yi","fu"],"t":[1,0]},{"L":"04","h":"菜","p":"cài","s":"名","m":"料理","y":["cai"],"t":[4]},{"L":"04","h":"冰激凌","p":"bīngjilíng","s":"名","m":"アイスクリーム","y":["bing","ji","ling"],"t":[1,0,2],"d":[["冰","氷"]]},{"L":"04","h":"肚子","p":"dùzi","s":"名","m":"お腹","y":["du","zi"],"t":[4,0]},{"L":"04","h":"疼","p":"téng","s":"形","m":"痛い","y":["teng"],"t":[2]},{"L":"04","h":"茄子","p":"qiézi","s":"名","m":"茄子","y":["qie","zi"],"t":[2,0]},{"L":"05","h":"剧场","p":"jùchǎng","s":"名","m":"劇場","y":["ju","chang"],"t":[4,3],"d":[["剧","劇"],["场","場"]]},{"L":"05","h":"门口","p":"ménkǒu","s":"名","m":"入り口","y":["men","kou"],"t":[2,3],"d":[["门","門"]]},{"L":"05","h":"中间","p":"zhōngjiān","s":"名","m":"中間、間、真ん中","y":["zhong","jian"],"t":[1,1],"d":[["间","間"]]},{"L":"05","h":"休息","p":"xiūxi","s":"動","m":"休む","y":["xiu","xi"],"t":[1,0]},{"L":"05","h":"演出","p":"yǎnchū","s":"名","m":"出し物","y":["yan","chu"],"t":[3,1]},{"L":"05","h":"结束","p":"jiéshù","s":"動","m":"終わる","y":["jie","shu"],"t":[2,4],"d":[["结","結"]]},{"L":"06","h":"咦","p":"yí","s":"嘆","m":"おや、驚きを表わす感嘆詞","y":["yi"],"t":[2]},{"L":"06","h":"下","p":"xià","s":"動","m":"降る、降りる","y":["xia"],"t":[4]},{"L":"06","h":"雪","p":"xuě","s":"名","m":"雪","y":["xue"],"t":[3]},{"L":"06","h":"柳絮","p":"liǔxù","s":"名","m":"柳絮、柳から出る綿のようなもの","y":["liu","xu"],"t":[3,4]},{"L":"06","h":"跟","p":"gēn","s":"介","m":"～と","y":["gen"],"t":[1]},{"L":"06","h":"一样","p":"yíyàng","s":"形","m":"同じ","y":["yi","yang"],"t":[2,4],"d":[["样","様"]]},{"L":"06","h":"树","p":"shù","s":"名","m":"木","y":["shu"],"t":[4],"d":[["树","樹"]]},{"L":"06","h":"可是","p":"kěshì","s":"連","m":"しかし","y":["ke","shi"],"t":[3,4]},{"L":"06","h":"吐","p":"tǔ","s":"動","m":"吐き出す、出す","y":["tu"],"t":[3]},{"L":"06","h":"时候","p":"shíhou(r)","s":"名","m":"時、頃","y":["shi","hou"],"t":[2,0],"d":[["时","時"]]},{"L":"06","h":"到处","p":"dàochù","s":"名","m":"いたるところ","y":["dao","chu"],"t":[4,4],"d":[["处","処"]]},{"L":"06","h":"飞","p":"fēi","s":"動","m":"飛ぶ","y":["fei"],"t":[1],"d":[["飞","飛"]]},{"L":"06","h":"好像","p":"hǎoxiàng","s":"動","m":"あたかも、どうも～のようだ","y":["hao","xiang"],"t":[3,4]},{"L":"06","h":"幅","p":"fú","s":"量","m":"絵を数える量詞、～枚、～幅","y":["fu"],"t":[2]},{"L":"06","h":"画儿","p":"huàr","s":"名","m":"絵","y":["huar"],"t":[4],"d":[["儿","児"]]},{"L":"06","h":"回","p":"huí","s":"動","m":"帰る","y":["hui"],"t":[2]},{"L":"06","h":"家","p":"jiā","s":"名","m":"家","y":["jia"],"t":[1]},{"L":"06","h":"雨","p":"yǔ","s":"名","m":"雨","y":["yu"],"t":[3]},{"L":"06","h":"刮","p":"guā","s":"動","m":"吹く","y":["gua"],"t":[1]},{"L":"06","h":"风","p":"fēng","s":"名","m":"風","y":["feng"],"t":[1],"d":[["风","風"]]},{"L":"06","h":"雷","p":"léi","s":"名","m":"雷","y":["lei"],"t":[2]},{"L":"06","h":"暖和","p":"nuǎnhuo","s":"形","m":"暖かい","y":["nuan","huo"],"t":[3,0]},{"L":"06","h":"春天","p":"chūntiān","s":"名","m":"春","y":["chun","tian"],"t":[1,1]},{"L":"06","h":"热","p":"rè","s":"形","m":"暑い","y":["re"],"t":[4],"d":[["热","熱"]]},{"L":"06","h":"夏天","p":"xiàtiān","s":"名","m":"夏","y":["xia","tian"],"t":[4,1]},{"L":"06","h":"凉快","p":"liángkuai","s":"形","m":"涼しい","y":["liang","kuai"],"t":[2,0],"d":[["凉","涼"]]},{"L":"06","h":"秋天","p":"qiūtiān","s":"名","m":"秋","y":["qiu","tian"],"t":[1,1]},{"L":"06","h":"冷","p":"lěng","s":"形","m":"寒い、冷たい","y":["leng"],"t":[3]},{"L":"06","h":"冬天","p":"dōngtiān","s":"名","m":"冬","y":["dong","tian"],"t":[1,1]},{"L":"06","h":"樱花","p":"yīnghuā","s":"名","m":"桜","y":["ying","hua"],"t":[1,1],"d":[["樱","桜"]]},{"L":"06","h":"见","p":"jiàn","s":"動","m":"見かける、会う","y":["jian"],"t":[4],"d":[["见","見"]]},{"L":"06","h":"挣","p":"zhèng","s":"動","m":"稼ぐ","y":["zheng"],"t":[4]},{"L":"06","h":"时间","p":"shíjiān","s":"名","m":"時間","y":["shi","jian"],"t":[2,1],"d":[["时","時"],["间","間"]]},{"L":"07","h":"站","p":"zhàn","s":"動","m":"立つ","y":["zhan"],"t":[4]},{"L":"07","h":"着","p":"zhe","s":"助","m":"～の状態でいる","y":["zhe"],"t":[0]},{"L":"07","h":"练","p":"liàn","s":"動","m":"練習する","y":["lian"],"t":[4],"d":[["练","練"]]},{"L":"07","h":"气功","p":"qìgōng","s":"名","m":"気功","y":["qi","gong"],"t":[4,1],"d":[["气","気"]]},{"L":"07","h":"太极拳","p":"tàijíquán","s":"名","m":"太極拳","y":["tai","ji","quan"],"t":[4,2,2],"d":[["极","極"]]},{"L":"07","h":"画","p":"huà","s":"動","m":"（絵を）かく","y":["hua"],"t":[4]},{"L":"07","h":"各种各样","p":"gèzhǒng gèyàng","s":"組","m":"さまざまの","y":["ge","zhong","ge","yang"],"t":[4,3,4,4],"d":[["种","種"],["样","様"]]},{"L":"07","h":"而且","p":"érqiě","s":"連","m":"しかも","y":["er","qie"],"t":[2,3]},{"L":"07","h":"都","p":"dōu","s":"副","m":"みんな","y":["dou"],"t":[1]},{"L":"07","h":"带","p":"dài","s":"動","m":"身に付ける、持っている","y":["dai"],"t":[4],"d":[["带","帯"]]},{"L":"07","h":"照相机","p":"zhàoxiàngjī","s":"名","m":"カメラ","y":["zhao","xiang","ji"],"t":[4,4,1],"d":[["机","機"]]},{"L":"07","h":"遗憾","p":"yíhàn","s":"形","m":"残念な","y":["yi","han"],"t":[2,4],"d":[["遗","遺"]]},{"L":"07","h":"坐","p":"zuò","s":"動","m":"座る","y":["zuo"],"t":[4]},{"L":"07","h":"开","p":"kāi","s":"動","m":"開ける、開く","y":["kai"],"t":[1],"d":[["开","開"]]},{"L":"07","h":"窗户","p":"chuānghu","s":"名","m":"窓","y":["chuang","hu"],"t":[1,0],"d":[["窗","窓"],["户","戸"]]},{"L":"07","h":"手表","p":"shǒubiǎo","s":"名","m":"腕時計","y":["shou","biao"],"t":[3,3]},{"L":"07","h":"胶卷儿","p":"jiāojuǎnr","s":"名","m":"フィルム","y":["jiao","juanr"],"t":[1,3],"d":[["胶","膠"],["儿","児"]]},{"L":"07","h":"电池","p":"diànchí","s":"名","m":"電池","y":["dian","chi"],"t":[4,2],"d":[["电","電"]]},{"L":"07","h":"手绢儿","p":"shǒujuànr","s":"名","m":"ハンカチ","y":["shou","juanr"],"t":[3,4],"d":[["绢","絹"],["儿","児"]]},{"L":"07","h":"伞","p":"sǎn","s":"名","m":"傘","y":["san"],"t":[3],"d":[["伞","傘"]]},{"L":"07","h":"字","p":"zì","s":"名","m":"字","y":["zi"],"t":[4]},{"L":"07","h":"放","p":"fàng","s":"動","m":"置く","y":["fang"],"t":[4]},{"L":"07","h":"杂志","p":"zázhì","s":"名","m":"雑誌","y":["za","zhi"],"t":[2,4],"d":[["杂","雑"]]},{"L":"07","h":"贴","p":"tiē","s":"動","m":"貼る","y":["tie"],"t":[1],"d":[["贴","貼"]]},{"L":"07","h":"广告","p":"guǎnggào","s":"名","m":"広告","y":["guang","gao"],"t":[3,4],"d":[["广","広"]]},{"L":"07","h":"糟糕","p":"zāogāo","s":"形","m":"しまった","y":["zao","gao"],"t":[1,1]},{"L":"07","h":"办法","p":"bànfǎ","s":"名","m":"方法","y":["ban","fa"],"t":[4,3],"d":[["办","辦"]]},{"L":"07","h":"大家","p":"dàjiā","s":"名","m":"みんな","y":["da","jia"],"t":[4,1]},{"L":"08","h":"划","p":"huá","s":"動","m":"漕ぐ","y":["hua"],"t":[2]},{"L":"08","h":"船","p":"chuán","s":"名","m":"ボート","y":["chuan"],"t":[2]},{"L":"08","h":"租","p":"zū","s":"動","m":"(お金を払って)借りる","y":["zu"],"t":[1]},{"L":"08","h":"以前","p":"yǐqián","s":"名","m":"以前","y":["yi","qian"],"t":[3,2]},{"L":"08","h":"忘","p":"wàng","s":"動","m":"忘れる","y":["wang"],"t":[4]},{"L":"08","h":"找","p":"zhǎo","s":"動","m":"さがす","y":["zhao"],"t":[3]},{"L":"08","h":"等","p":"děng","s":"動","m":"待つ","y":["deng"],"t":[3]},{"L":"08","h":"改","p":"gǎi","s":"動","m":"改める、変わる","y":["gai"],"t":[3]},{"L":"08","h":"再","p":"zài","s":"副","m":"また、再び、それから","y":["zai"],"t":[4]},{"L":"08","h":"算了","p":"suàn le","s":"組","m":"やめにする、よしにする、御破算にする","y":["suan","le"],"t":[4,0]},{"L":"08","h":"还是","p":"háishi","s":"副","m":"やっぱり","y":["hai","shi"],"t":[2,0],"d":[["还","還"]]},{"L":"08","h":"风景","p":"fēngjǐng","s":"名","m":"景色","y":["feng","jing"],"t":[1,3],"d":[["风","風"]]},{"L":"08","h":"完","p":"wán","s":"動","m":"終わる、終える","y":["wan"],"t":[2]},{"L":"08","h":"错","p":"cuò","s":"形","m":"間違えている","y":["cuo"],"t":[4],"d":[["错","錯"]]},{"L":"08","h":"遍","p":"biàn","s":"量","m":"～回","y":["bian"],"t":[4]},{"L":"08","h":"听","p":"tīng","s":"動","m":"聞く","y":["ting"],"t":[1],"d":[["听","聴"]]},{"L":"08","h":"准备","p":"zhǔnbèi","s":"動","m":"準備する","y":["zhun","bei"],"t":[3,4],"d":[["准","準"],["备","備"]]},{"L":"08","h":"答","p":"dá","s":"動","m":"答える","y":["da"],"t":[2]},{"L":"08","h":"懂","p":"dǒng","s":"動","m":"分かる","y":["dong"],"t":[3]},{"L":"08","h":"念","p":"niàn","s":"動","m":"（声を出して）読む","y":["nian"],"t":[4]},{"L":"08","h":"清楚","p":"qīngchu","s":"形","m":"はっきりしている","y":["qing","chu"],"t":[1,0]},{"L":"08","h":"照","p":"zhào","s":"動","m":"（写真を）撮る","y":["zhao"],"t":[4]},{"L":"09","h":"死了","p":"sǐ le","s":"組","m":"死ぬほど～だ","y":["si","le"],"t":[3,0]},{"L":"09","h":"休息","p":"xiūxi","s":"動","m":"休む","y":["xiu","xi"],"t":[1,0]},{"L":"09","h":"一会儿","p":"yíhuìr","s":"名","m":"ちょっと（の時間）","y":["yi","huir"],"t":[2,4],"d":[["儿","児"]]},{"L":"09","h":"山顶","p":"shāndǐng","s":"名","m":"頂上","y":["shan","ding"],"t":[1,3],"d":[["顶","頂"]]},{"L":"09","h":"从","p":"cóng","s":"介","m":"～から","y":["cong"],"t":[2],"d":[["从","従"]]},{"L":"09","h":"极了","p":"jí le","s":"組","m":"すごく～だ","y":["ji","le"],"t":[2,0],"d":[["极","極"]]},{"L":"09","h":"加油","p":"jiā yóur","s":"組","m":"頑張れ","y":["jia","your"],"t":[1,2]},{"L":"09","h":"嚯","p":"huò","s":"嘆","m":"へぇー（驚嘆する時の感嘆詞）","y":["huo"],"t":[4]},{"L":"09","h":"整个","p":"zhěnggè","s":"形","m":"～全体","y":["zheng","ge"],"t":[3,4],"d":[["个","個"]]},{"L":"09","h":"故宫","p":"Gùgōng","s":"名","m":"故宮","y":["gu","gong"],"t":[4,1],"d":[["宫","宮"]]},{"L":"09","h":"小时","p":"xiǎoshí","s":"名","m":"～時間","y":["xiao","shi"],"t":[3,2],"d":[["时","時"]]},{"L":"09","h":"电视","p":"diànshì","s":"名","m":"テレビ","y":["dian","shi"],"t":[4,4],"d":[["电","電"],["视","視"]]},{"L":"09","h":"难看","p":"nánkàn","s":"形","m":"醜い、きたない","y":["nan","kan"],"t":[2,4],"d":[["难","難"]]},{"L":"09","h":"难听","p":"nántīng","s":"形","m":"聞くに耐えない","y":["nan","ting"],"t":[2,1],"d":[["难","難"],["听","聴"]]},{"L":"09","h":"难吃","p":"nán chī","s":"形","m":"まずい","y":["nan","chi"],"t":[2,1],"d":[["难","難"]]},{"L":"09","h":"热","p":"rè","s":"形","m":"暑い","y":["re"],"t":[4],"d":[["热","熱"]]},{"L":"09","h":"好听","p":"hǎotīng","s":"形","m":"（聞くものが）きれい","y":["hao","ting"],"t":[3,1],"d":[["听","聴"]]},{"L":"09","h":"公园","p":"gōngyuán","s":"名","m":"公園","y":["gong","yuan"],"t":[1,2],"d":[["园","園"]]},{"L":"09","h":"湖","p":"hú","s":"名","m":"湖","y":["hu"],"t":[2]},{"L":"09","h":"湖边","p":"húbiān","s":"名","m":"湖畔","y":["hu","bian"],"t":[2,1],"d":[["边","辺"]]},{"L":"09","h":"凉快","p":"liángkuai","s":"形","m":"涼しい","y":["liang","kuai"],"t":[2,0],"d":[["凉","涼"]]},{"L":"09","h":"课本","p":"kèběn","s":"名","m":"教科書","y":["ke","ben"],"t":[4,3],"d":[["课","課"]]},{"L":"09","h":"从头到尾","p":"cóng tóu dào wěi","s":"組","m":"始めから終わりまで","y":["cong","tou","dao","wei"],"t":[2,2,4,3],"d":[["从","従"],["头","頭"]]},{"L":"10","h":"早上","p":"zǎoshang","s":"名","m":"朝","y":["zao","shang"],"t":[3,0]},{"L":"10","h":"北海","p":"Běihǎi","s":"名","m":"北海（北京の湖の名前）","y":["bei","hai"],"t":[3,3]},{"L":"10","h":"散步","p":"sànbù","s":"動","m":"散歩する","y":["san","bu"],"t":[4,4]},{"L":"10","h":"建筑","p":"jiànzhù","s":"名","m":"建物","y":["jian","zhu"],"t":[4,4],"d":[["筑","築"]]},{"L":"11","h":"老师","p":"lǎoshī","s":"名","m":"先生","y":["lao","shi"],"t":[3,1],"d":[["师","師"]]},{"L":"11","h":"师母","p":"shīmǔ","s":"名","m":"先生の奥さん","y":["shi","mu"],"t":[1,3],"d":[["师","師"]]},{"L":"11","h":"快","p":"kuài","s":"副","m":"（スピードが）速い、速く","y":["kuai"],"t":[4]},{"L":"11","h":"进","p":"jìn","s":"動","m":"入る","y":["jin"],"t":[4],"d":[["进","進"]]},{"L":"11","h":"对不起","p":"duìbuqǐ","s":"組","m":"すみません","y":["dui","bu","qi"],"t":[4,0,3],"d":[["对","対"]]},{"L":"11","h":"晚","p":"wǎn","s":"形","m":"遅い","y":["wan"],"t":[3],"d":[["晚","晩"]]},{"L":"11","h":"关系","p":"guānxi","s":"名","m":"関係","y":["guan","xi"],"t":[1,0],"d":[["关","関"]]},{"L":"11","h":"收","p":"shōu","s":"動","m":"受け取る","y":["shou"],"t":[1],"d":[["收","収"]]},{"L":"11","h":"下","p":"xià","s":"動","m":"下がる、おろす","y":["xia"],"t":[4]},{"L":"11","h":"哎呀呀","p":"āiyaya","s":"嘆","m":"おやおや","y":["ai","ya","ya"],"t":[1,0,0]},{"L":"11","h":"嘛","p":"ma","s":"助","m":"～じゃないか（相手に言って聞かせる語気）","y":["ma"],"t":[0]},{"L":"11","h":"忙","p":"máng","s":"形","m":"忙しい","y":["mang"],"t":[2]},{"L":"11","h":"过","p":"guò","s":"動","m":"通る、通り過ぎる","y":["guo"],"t":[4],"d":[["过","過"]]},{"L":"11","h":"问好","p":"wèn hǎo","s":"組","m":"よろしく言う、挨拶する","y":["wen","hao"],"t":[4,3],"d":[["问","問"]]},{"L":"11","h":"客人","p":"kèren(rén)","s":"名","m":"お客さん","y":["ke","ren"],"t":[4,0]},{"L":"11","h":"姐姐","p":"jiějie","s":"名","m":"お姉さん","y":["jie","jie"],"t":[3,0]},{"L":"11","h":"笔","p":"bǐ","s":"名","m":"筆記用具","y":["bi"],"t":[3],"d":[["笔","筆"]]},{"L":"11","h":"介绍信","p":"jièshàoxìn","s":"名","m":"紹介状","y":["jie","shao","xin"],"t":[4,4,4],"d":[["绍","紹"]]},{"L":"11","h":"托","p":"tuō","s":"動","m":"託する","y":["tuo"],"t":[1]},{"L":"11","h":"向","p":"xiàng","s":"介","m":"～に対して","y":["xiang"],"t":[4]},{"L":"11","h":"打搅","p":"dǎjiǎo","s":"動","m":"邪魔する","y":["da","jiao"],"t":[3,3],"d":[["搅","攪"]]},{"L":"11","h":"夫人","p":"fūren(rén)","s":"名","m":"夫人","y":["fu","ren"],"t":[1,0]},{"L":"11","h":"留步","p":"liúbù","s":"動","m":"その場に留まる","y":["liu","bu"],"t":[2,4]},{"L":"11","h":"送","p":"sòng","s":"動","m":"見送る、プレゼントする","y":["song"],"t":[4]},{"L":"11","h":"上来","p":"shànglai","s":"方向動詞","m":"上がってくる","y":["shang","lai"],"t":[4,0]},{"L":"11","h":"上去","p":"shàngqu","s":"方向動詞","m":"上がってゆく","y":["shang","qu"],"t":[4,0]},{"L":"11","h":"下来","p":"xiàlai","s":"方向動詞","m":"下りてくる","y":["xia","lai"],"t":[4,0]},{"L":"11","h":"下去","p":"xiàqu","s":"方向動詞","m":"下りてゆく","y":["xia","qu"],"t":[4,0]},{"L":"11","h":"进来","p":"jìnlai","s":"方向動詞","m":"入ってくる","y":["jin","lai"],"t":[4,0],"d":[["进","進"]]},{"L":"11","h":"进去","p":"jìnqu","s":"方向動詞","m":"入ってゆく","y":["jin","qu"],"t":[4,0],"d":[["进","進"]]},{"L":"11","h":"出来","p":"chūlai","s":"方向動詞","m":"出てくる","y":["chu","lai"],"t":[1,0]},{"L":"11","h":"出去","p":"chūqu","s":"方向動詞","m":"出て行く","y":["chu","qu"],"t":[1,0]},{"L":"11","h":"回来","p":"huílai","s":"方向動詞","m":"帰ってくる","y":["hui","lai"],"t":[2,0]},{"L":"11","h":"回去","p":"huíqu","s":"方向動詞","m":"帰ってゆく","y":["hui","qu"],"t":[2,0]},{"L":"11","h":"过来","p":"guòlai","s":"方向動詞","m":"（こちらへ）やってくる","y":["guo","lai"],"t":[4,0],"d":[["过","過"]]},{"L":"11","h":"过去","p":"guòqu","s":"方向動詞","m":"（むこうへ）通り過ぎてゆく","y":["guo","qu"],"t":[4,0],"d":[["过","過"]]},{"L":"11","h":"起来","p":"qǐlai","s":"方向動詞","m":"起きてくる","y":["qi","lai"],"t":[3,0]},{"L":"12","h":"包","p":"bāo","s":"動","m":"包む","y":["bao"],"t":[1]},{"L":"12","h":"饺子","p":"jiǎozi","s":"名","m":"ギョーザ","y":["jiao","zi"],"t":[3,0],"d":[["饺","餃"]]},{"L":"12","h":"馅儿","p":"xiànr","s":"名","m":"具","y":["xianr"],"t":[4],"d":[["馅","餡"],["儿","児"]]},{"L":"12","h":"把","p":"bǎ","s":"介","m":"～を","y":["ba"],"t":[3]},{"L":"12","h":"肉末","p":"ròumò","s":"名","m":"挽き肉","y":["rou","mo"],"t":[4,4]},{"L":"12","h":"调料","p":"tiáoliào","s":"名","m":"調味料","y":["tiao","liao"],"t":[2,4],"d":[["调","調"]]},{"L":"12","h":"和","p":"huò","s":"動","m":"混ぜる","y":["huo"],"t":[4]},{"L":"12","h":"酱油","p":"jiàngyóu","s":"名","m":"醤油","y":["jiang","you"],"t":[4,2],"d":[["酱","醤"]]},{"L":"12","h":"盐","p":"yán","s":"名","m":"塩","y":["yan"],"t":[2],"d":[["盐","塩"]]},{"L":"12","h":"菜","p":"cài","s":"名","m":"料理、野菜","y":["cai"],"t":[4]},{"L":"12","h":"放","p":"fàng","s":"動","m":"置く、入れる","y":["fang"],"t":[4]},{"L":"12","h":"皮儿","p":"pír","s":"名","m":"皮（ギョーザの皮など）","y":["pir"],"t":[2],"d":[["儿","児"]]},{"L":"12","h":"做","p":"zuò","s":"動","m":"作る、する","y":["zuo"],"t":[4]},{"L":"12","h":"只有","p":"zhǐyǒu","s":"連","m":"～だけ","y":["zhi","you"],"t":[3,3]},{"L":"12","h":"慢慢儿","p":"mànmānr","s":"副","m":"ゆっくりと","y":["man","manr"],"t":[4,1],"d":[["儿","児"]]},{"L":"12","h":"着急","p":"zháojí (zhāojí)","s":"動","m":"慌てる、発音は二通りある","y":["zhao","ji"],"t":[2,2]},{"L":"12","h":"出生","p":"chūshēng","s":"動","m":"生まれる","y":["chu","sheng"],"t":[1,1]},{"L":"12","h":"递","p":"dì","s":"動","m":"手渡す","y":["di"],"t":[4]},{"L":"12","h":"醋","p":"cù","s":"名","m":"酢","y":["cu"],"t":[4]},{"L":"12","h":"白糖","p":"báitáng","s":"名","m":"砂糖","y":["bai","tang"],"t":[2,2]},{"L":"12","h":"牛奶","p":"niúnǎi","s":"名","m":"牛乳","y":["niu","nai"],"t":[2,3]},{"L":"12","h":"筷子","p":"kuàizi","s":"名","m":"箸","y":["kuai","zi"],"t":[4,0]},{"L":"12","h":"勺子","p":"sháozi","s":"名","m":"スプーン","y":["shao","zi"],"t":[2,0]},{"L":"12","h":"碗筷","p":"wǎn kuài","s":"名","m":"食器","y":["wan","kuai"],"t":[3,4]},{"L":"12","h":"摆","p":"bǎi","s":"動","m":"並べる","y":["bai"],"t":[3],"d":[["摆","擺"]]},{"L":"12","h":"衣服","p":"yīfu","s":"名","m":"服","y":["yi","fu"],"t":[1,0]},{"L":"12","h":"汉字","p":"Hànzì","s":"名","m":"漢字","y":["han","zi"],"t":[4,4],"d":[["汉","漢"]]},{"L":"13","h":"弄","p":"nòng","s":"動","m":"やる","y":["nong"],"t":[4]},{"L":"13","h":"厨房","p":"chúfáng","s":"名","m":"台所","y":["chu","fang"],"t":[2,2]},{"L":"13","h":"水","p":"shuǐ","s":"名","m":"水・お湯","y":["shui"],"t":[3]},{"L":"13","h":"开","p":"kāi","s":"動","m":"沸く","y":["kai"],"t":[1],"d":[["开","開"]]},{"L":"13","h":"得","p":"de","s":"助","m":"文法欄参照","y":["de"],"t":[0]},{"L":"13","h":"考试","p":"kǎoshì","s":"名","m":"試験","y":["kao","shi"],"t":[3,4],"d":[["试","試"]]},{"L":"13","h":"睡","p":"shuì","s":"動","m":"眠る","y":["shui"],"t":[4]},{"L":"13","h":"咖啡","p":"kāfēi","s":"名","m":"コーヒー","y":["ka","fei"],"t":[1,1]},{"L":"13","h":"着","p":"zháo","s":"動","m":"（寝）着く","y":["zhao"],"t":[2]},{"L":"13","h":"了","p":"liǎo","s":"動","m":"～し尽くす","y":["liao"],"t":[3]},{"L":"13","h":"椅子","p":"yǐzi","s":"名","m":"椅子","y":["yi","zi"],"t":[3,0]},{"L":"13","h":"住","p":"zhù","s":"動","m":"住む、泊まる","y":["zhu"],"t":[4]},{"L":"13","h":"人","p":"rén","s":"名","m":"人","y":["ren"],"t":[2]},{"L":"13","h":"种","p":"zhòng","s":"動","m":"植える","y":["zhong"],"t":[4],"d":[["种","種"]]},{"L":"13","h":"花儿","p":"huār","s":"名","m":"花","y":["huar"],"t":[1],"d":[["儿","児"]]},{"L":"13","h":"聚餐","p":"jùcān","s":"動・名","m":"会食（コンパ、会食をする）","y":["ju","can"],"t":[4,1]},{"L":"14","h":"捞","p":"lāo","s":"動","m":"（液体の中から物を）すくう","y":["lao"],"t":[1]},{"L":"14","h":"倒","p":"dào","s":"動","m":"傾ける、注ぐ","y":["dao"],"t":[4]},{"L":"14","h":"可乐","p":"kělè","s":"名","m":"コーラ","y":["ke","le"],"t":[3,4],"d":[["乐","楽"]]},{"L":"14","h":"祝","p":"zhù","s":"動","m":"祈る","y":["zhu"],"t":[4]},{"L":"14","h":"同学","p":"tóngxué","s":"名","m":"クラスメート、（学生に対して）～さん、君","y":["tong","xue"],"t":[2,2]},{"L":"14","h":"进步","p":"jìnbù","s":"動","m":"進歩する","y":["jin","bu"],"t":[4,4],"d":[["进","進"]]},{"L":"14","h":"留学","p":"liúxué","s":"動・名","m":"留学、留学する","y":["liu","xue"],"t":[2,2]},{"L":"14","h":"愉快","p":"yúkuài","s":"形","m":"愉快な","y":["yu","kuai"],"t":[2,4]},{"L":"14","h":"干杯","p":"gānbēi","s":"動","m":"乾杯する","y":["gan","bei"],"t":[1,1]},{"L":"14","h":"味道","p":"wèidao","s":"名","m":"味","y":["wei","dao"],"t":[4,0]},{"L":"14","h":"身体","p":"shēntǐ","s":"名","m":"体","y":["shen","ti"],"t":[1,3]},{"L":"14","h":"新年","p":"xīnnián","s":"名","m":"新年","y":["xin","nian"],"t":[1,2]},{"L":"14","h":"生日","p":"shēngri(rì)","s":"名","m":"誕生日","y":["sheng","ri"],"t":[1,0]},{"L":"14","h":"快乐","p":"kuàilè","s":"形","m":"楽しい","y":["kuai","le"],"t":[4,4],"d":[["乐","楽"]]},{"L":"14","h":"永远","p":"yǒngyuǎn","s":"副","m":"いつまでも","y":["yong","yuan"],"t":[3,3],"d":[["远","遠"]]},{"L":"14","h":"幸福","p":"xìngfú","s":"形","m":"幸福な","y":["xing","fu"],"t":[4,2]},{"L":"14","h":"一路","p":"yílù","s":"組","m":"道中","y":["yi","lu"],"t":[2,4]},{"L":"14","h":"顺风","p":"shùnfēng","s":"組","m":"順風、順調な","y":["shun","feng"],"t":[4,1],"d":[["顺","順"],["风","風"]]},{"L":"14","h":"这些","p":"zhèxiē","s":"代","m":"これらの（“些”が付くと複数を表わす）","y":["zhe","xie"],"t":[4,1],"d":[["这","這"]]},{"L":"14","h":"家","p":"jiā","s":"名","m":"家","y":["jia"],"t":[1]},{"L":"14","h":"老家","p":"lǎojiā","s":"名","m":"実家","y":["lao","jia"],"t":[3,1]},{"L":"14","h":"大家","p":"dàjiā","s":"名","m":"みんな","y":["da","jia"],"t":[4,1]},{"L":"14","h":"夹","p":"jiā","s":"動","m":"挟む、（箸で）取る","y":["jia"],"t":[1]},{"L":"14","h":"够","p":"gòu","s":"動","m":"足りている","y":["gou"],"t":[4]},{"L":"14","h":"饱","p":"bǎo","s":"形","m":"お腹がいっぱい","y":["bao"],"t":[3],"d":[["饱","飽"]]},{"L":"15","h":"拜访","p":"bàifǎng","s":"動","m":"訪問する","y":["bai","fang"],"t":[4,3],"d":[["访","訪"]]},{"L":"15","h":"女儿","p":"nǚ'ér","s":"名","m":"娘","y":["nv","er"],"t":[3,2],"d":[["儿","児"]]},{"L":"15","h":"可爱","p":"kě'ài","s":"形","m":"可愛い","y":["ke","ai"],"t":[3,4],"d":[["爱","愛"]]},{"L":"15","h":"大提琴","p":"dàtíqín","s":"名","m":"チェロ","y":["da","ti","qin"],"t":[4,2,2]},{"L":"15","h":"教","p":"jiāo","s":"動","m":"教える（名詞成分に含まれる時は4声）","y":["jiao"],"t":[1]},{"L":"15","h":"锅","p":"guō","s":"名","m":"鍋","y":["guo"],"t":[1],"d":[["锅","鍋"]]},{"L":"15","h":"煮","p":"zhǔ","s":"動","m":"煮る","y":["zhu"],"t":[3]},{"L":"15","h":"一","p":"yī","s":"副","m":"ひと～すると","y":["yi"],"t":[1]},{"L":"15","h":"闻","p":"wén","s":"動","m":"匂いを嗅ぐ","y":["wen"],"t":[2],"d":[["闻","聞"]]},{"L":"16","h":"叫","p":"jiào","s":"動","m":"～させる","y":["jiao"],"t":[4]},{"L":"16","h":"写生","p":"xiěshēng","s":"動","m":"写生する","y":["xie","sheng"],"t":[3,1]},{"L":"16","h":"圆明园","p":"Yuánmíngyuán","s":"名","m":"円明園（北京の公園）","y":["yuan","ming","yuan"],"t":[2,2,2],"d":[["圆","円"],["园","園"]]},{"L":"16","h":"骑","p":"qí","s":"動","m":"（またがって）乗る","y":["qi"],"t":[2],"d":[["骑","騎"]]},{"L":"16","h":"车","p":"chē","s":"名","m":"自転車、自動車、バスなど","y":["che"],"t":[1],"d":[["车","車"]]},{"L":"16","h":"自行车","p":"zìxíngchē","s":"名","m":"自転車","y":["zi","xing","che"],"t":[4,2,1],"d":[["车","車"]]},{"L":"16","h":"舒服","p":"shūfu","s":"形","m":"気持ちいい","y":["shu","fu"],"t":[1,0]},{"L":"16","h":"开","p":"kāi","s":"動","m":"運転する","y":["kai"],"t":[1],"d":[["开","開"]]},{"L":"16","h":"汽车","p":"qìchē","s":"名","m":"自動車","y":["qi","che"],"t":[4,1],"d":[["车","車"]]},{"L":"16","h":"妈妈","p":"māma","s":"名","m":"お母さん","y":["ma","ma"],"t":[1,0]},{"L":"16","h":"让","p":"ràng","s":"動","m":"～させてあげる","y":["rang"],"t":[4],"d":[["让","譲"]]},{"L":"16","h":"报告","p":"bàogào","s":"名","m":"報告、レポート","y":["bao","gao"],"t":[4,4],"d":[["报","報"]]},{"L":"16","h":"作文","p":"zuòwén","s":"名","m":"作文","y":["zuo","wen"],"t":[4,2]},{"L":"16","h":"课文","p":"kèwén","s":"名","m":"本文","y":["ke","wen"],"t":[4,2],"d":[["课","課"]]},{"L":"16","h":"练习","p":"liànxí","s":"名","m":"練習問題","y":["lian","xi"],"t":[4,2],"d":[["练","練"],["习","習"]]},{"L":"16","h":"预习","p":"yùxí","s":"動","m":"予習する","y":["yu","xi"],"t":[4,2],"d":[["预","予"],["习","習"]]},{"L":"16","h":"复习","p":"fùxí","s":"動","m":"復習する","y":["fu","xi"],"t":[4,2],"d":[["复","復"],["习","習"]]},{"L":"16","h":"染","p":"rǎn","s":"動","m":"染める","y":["ran"],"t":[3]},{"L":"16","h":"头发","p":"tóufa","s":"名","m":"髪の毛","y":["tou","fa"],"t":[2,0],"d":[["头","頭"]]},{"L":"16","h":"爱人","p":"àiren","s":"名","m":"夫、妻","y":["ai","ren"],"t":[4,0],"d":[["爱","愛"]]},{"L":"16","h":"为什么","p":"wèishénme","s":"代","m":"なぜ","y":["wei","shen","me"],"t":[4,2,0],"d":[["为","為"],["么","麼"]]},{"L":"16","h":"浪费","p":"làngfèi","s":"動・形","m":"浪費する、無駄な","y":["lang","fei"],"t":[4,4],"d":[["费","費"]]},{"L":"16","h":"来不及","p":"láibují","s":"組","m":"間に合わない","y":["lai","bu","ji"],"t":[2,0,2]},{"L":"17","h":"转","p":"zhuàn","s":"動","m":"回る","y":["zhuan"],"t":[4],"d":[["转","転"]]},{"L":"17","h":"圈(儿)","p":"quān(r)","s":"量","m":"一回り","y":["quan"],"t":[1],"d":[["儿","児"]]},{"L":"17","h":"片","p":"piàn","s":"量","m":"一片、一面","y":["pian"],"t":[4]},{"L":"17","h":"废墟","p":"fèixū","s":"名","m":"廃墟","y":["fei","xu"],"t":[4,1],"d":[["废","廃"]]},{"L":"17","h":"被","p":"bèi","s":"介","m":"～される","y":["bei"],"t":[4]},{"L":"17","h":"英法联军","p":"Yīng-Fǎ liánjūn","s":"組","m":"英仏連合軍","y":["ying","fa","lian","jun"],"t":[1,3,2,1],"d":[["联","連"],["军","軍"]]},{"L":"17","h":"破坏","p":"pòhuài","s":"動","m":"破壊する","y":["po","huai"],"t":[4,4],"d":[["坏","壊"]]},{"L":"17","h":"鸦片","p":"yāpiàn","s":"名","m":"アヘン","y":["ya","pian"],"t":[1,4],"d":[["鸦","鴉"]]},{"L":"17","h":"战争","p":"zhànzhēng","s":"名","m":"戦争","y":["zhan","zheng"],"t":[4,1],"d":[["战","戦"]]},{"L":"17","h":"许多","p":"xǔduō","s":"形","m":"多くの","y":["xu","duo"],"t":[3,1],"d":[["许","許"]]},{"L":"17","h":"文物","p":"wénwù","s":"名","m":"文化財","y":["wen","wu"],"t":[2,4]},{"L":"17","h":"偷","p":"tōu","s":"動","m":"盗む","y":["tou"],"t":[1]},{"L":"17","h":"实在","p":"shízài","s":"副","m":"実に、まったく","y":["shi","zai"],"t":[2,4],"d":[["实","実"]]},{"L":"17","h":"可惜","p":"kěxī","s":"形","m":"惜しい","y":["ke","xi"],"t":[3,1]},{"L":"17","h":"可能","p":"kěnéng","s":"名","m":"可能性","y":["ke","neng"],"t":[3,2]},{"L":"17","h":"修复","p":"xiūfù","s":"動","m":"修復する","y":["xiu","fu"],"t":[1,4],"d":[["复","復"]]},{"L":"17","h":"当作","p":"dàngzuò","s":"動","m":"～として","y":["dang","zuo"],"t":[4,4]},{"L":"17","h":"遗址","p":"yízhǐ","s":"名","m":"遺跡","y":["yi","zhi"],"t":[2,3],"d":[["遗","遺"]]},{"L":"17","h":"保存","p":"bǎocún","s":"動","m":"保存する","y":["bao","cun"],"t":[3,2]},{"L":"17","h":"为了","p":"wèile","s":"介","m":"～のために","y":["wei","le"],"t":[4,0],"d":[["为","為"]]},{"L":"17","h":"使","p":"shǐ","s":"動","m":"（心理活動を）させる","y":["shi"],"t":[3]},{"L":"17","h":"忘记","p":"wàngjì","s":"動","m":"忘れる","y":["wang","ji"],"t":[4,4],"d":[["记","記"]]},{"L":"17","h":"历史","p":"lìshǐ","s":"名","m":"歴史","y":["li","shi"],"t":[4,3],"d":[["历","歴"]]},{"L":"17","h":"借","p":"jiè","s":"動","m":"（ただで）借りる、貸す","y":["jie"],"t":[4]},{"L":"17","h":"小偷儿","p":"xiǎotōur","s":"名","m":"こそ泥","y":["xiao","tour"],"t":[3,1],"d":[["儿","児"]]},{"L":"17","h":"行李","p":"xíngli","s":"名","m":"旅行かばん、トランク","y":["xing","li"],"t":[2,0]},{"L":"17","h":"电脑","p":"diànnǎo","s":"名","m":"パソコン","y":["dian","nao"],"t":[4,3],"d":[["电","電"],["脑","脳"]]},{"L":"17","h":"坏","p":"huài","s":"形","m":"悪い、壊れている","y":["huai"],"t":[4],"d":[["坏","壊"]]},{"L":"17","h":"因为","p":"yīnwèi(wei)","s":"連","m":"なぜならば","y":["yin","wei"],"t":[1,4],"d":[["为","為"]]},{"L":"17","h":"参考书","p":"cānkǎoshū","s":"名","m":"参考書、レファレンスブック","y":["can","kao","shu"],"t":[1,3,1],"d":[["书","書"]]},{"L":"17","h":"犯人","p":"fànrén","s":"名","m":"犯人","y":["fan","ren"],"t":[4,2]},{"L":"17","h":"抓","p":"zhuā","s":"動","m":"つかまえる","y":["zhua"],"t":[1]},{"L":"17","h":"小心","p":"xiǎoxīn","s":"動","m":"気を付ける、用心する","y":["xiao","xin"],"t":[3,1]},{"L":"18","h":"打算","p":"dǎsuan(suàn)","s":"動・名","m":"～するつもりだ","y":["da","suan"],"t":[3,0]},{"L":"18","h":"样子","p":"yàngzi","s":"名","m":"様子","y":["yang","zi"],"t":[4,0],"d":[["样","様"]]},{"L":"18","h":"值得","p":"zhíde","s":"動","m":"～する価値がある","y":["zhi","de"],"t":[2,0]},{"L":"18","h":"代表","p":"dàibiǎo","s":"動・名","m":"代表する、代表","y":["dai","biao"],"t":[4,3]},{"L":"18","h":"应该","p":"yīnggāi","s":"助動","m":"～すべきだ","y":["ying","gai"],"t":[1,1],"d":[["应","応"],["该","該"]]},{"L":"18","h":"听","p":"tīng","s":"動","m":"聞く、いうことをきく","y":["ting"],"t":[1],"d":[["听","聴"]]},{"L":"18","h":"假期","p":"jiàqī","s":"名","m":"休暇","y":["jia","qi"],"t":[4,1]},{"L":"18","h":"旅行","p":"lǚxíng","s":"動","m":"旅行する","y":["lv","xing"],"t":[3,2]},{"L":"18","h":"打工","p":"dǎgōng","s":"動","m":"アルバイトをする","y":["da","gong"],"t":[3,1]},{"L":"18","h":"夜校","p":"yèxiào","s":"名","m":"夜学","y":["ye","xiao"],"t":[4,4]},{"L":"18","h":"外国","p":"wàiguó","s":"名","m":"外国","y":["wai","guo"],"t":[4,2]},{"L":"18","h":"外语","p":"wàiyǔ","s":"名","m":"外国語","y":["wai","yu"],"t":[4,3],"d":[["语","語"]]},{"L":"18","h":"锻炼","p":"duànliàn","s":"動","m":"鍛える、スポーツをする","y":["duan","lian"],"t":[4,4],"d":[["锻","鍛"],["炼","錬"]]},{"L":"18","h":"唱","p":"chàng","s":"動","m":"歌う","y":["chang"],"t":[4]},{"L":"18","h":"卡拉OK","p":"kǎlā ōukèi","s":"名","m":"カラオケ","y":["ka","la","ou","kei"],"t":[3,1,1,4]},{"L":"18","h":"意大利","p":"Yìdàlì","s":"名","m":"イタリア","y":["yi","da","li"],"t":[4,4,4]},{"L":"18","h":"念","p":"niàn","s":"動","m":"音読する","y":["nian"],"t":[4]},{"L":"18","h":"聊天儿","p":"liáotiānr","s":"動","m":"おしゃべりする","y":["liao","tianr"],"t":[2,1],"d":[["儿","児"]]},{"L":"19","h":"得","p":"de","s":"助","m":"文法欄を参照","y":["de"],"t":[0]},{"L":"19","h":"谦虚","p":"qiānxū","s":"形","m":"謙虚な","y":["qian","xu"],"t":[1,1],"d":[["谦","謙"]]},{"L":"19","h":"多了","p":"duōle","s":"助","m":"ずっと～だ","y":["duo","le"],"t":[1,0]},{"L":"19","h":"涂","p":"tú","s":"動","m":"塗る","y":["tu"],"t":[2],"d":[["涂","塗"]]},{"L":"19","h":"来不及","p":"láibují","s":"組","m":"間に合わない","y":["lai","bu","ji"],"t":[2,0,2]},{"L":"19","h":"等~再~","p":"děng~zài~","s":"組","m":"～してから～する"},{"L":"19","h":"颜色","p":"yánsè","s":"名","m":"色","y":["yan","se"],"t":[2,4],"d":[["颜","顔"]]},{"L":"19","h":"下次","p":"xiàcì","s":"名","m":"次回","y":["xia","ci"],"t":[4,4]},{"L":"19","h":"该~了","p":"gāi~le","s":"組","m":"～すべき（時だ）","d":[["该","該"]]},{"L":"19","h":"别","p":"bié","s":"形","m":"別の","y":["bie"],"t":[2],"d":[["别","別"]]},{"L":"19","h":"路","p":"lù","s":"名","m":"道","y":["lu"],"t":[4]},{"L":"19","h":"(一)边~(一)边~","p":"(yí) biān ~(yí) biān ~","s":"組","m":"～しながら～する","d":[["边","辺"]]},{"L":"19","h":"歌儿","p":"gēr","s":"名","m":"歌","y":["ger"],"t":[1],"d":[["儿","児"]]},{"L":"19","h":"乒乓球","p":"pīngpāngqiú","s":"名","m":"卓球","y":["ping","pang","qiu"],"t":[1,1,2]},{"L":"19","h":"商量","p":"shāngliang","s":"動","m":"相談する","y":["shang","liang"],"t":[1,0]},{"L":"19","h":"谈","p":"tán","s":"動","m":"話す","y":["tan"],"t":[2],"d":[["谈","談"]]},{"L":"19","h":"天","p":"tiān","s":"名","m":"時間","y":["tian"],"t":[1]},{"L":"19","h":"早","p":"zǎo","s":"形","m":"（タイミングが）早い","y":["zao"],"t":[3]},{"L":"19","h":"告辞","p":"gàocí","s":"動","m":"おいとまする","y":["gao","ci"],"t":[4,2]},{"L":"19","h":"送","p":"sòng","s":"動","m":"（人を）送って行く","y":["song"],"t":[4]},{"L":"20","h":"大水法","p":"Dàshuǐfǎ","s":"名","m":"大水法（円明園の中の地名）","y":["da","shui","fa"],"t":[4,3,3]},{"L":"20","h":"素描","p":"sùmiáo","s":"名","m":"スケッチ","y":["su","miao"],"t":[4,2]}];
+const NOTES={};
+
+const GRAMMAR=[];
+
+const words = WORDS.map((w,i)=>({...w, id:i, key:w.L+"|"+w.h+"|"+w.p}));
+const state = { p:{}, d:{} };   // key -> {st:'k'|'s', lv, w}
+const rec = k => (state.p[k] ||= {st:"", lv:0, w:0});
+let deck=[], idx=0, flipped=false, tab="study", ans=false;
+let starOnly=false, diffOnly=false, hlOn=true, autoplay=true;
+const $ = id=>document.getElementById(id);
+const plain = s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+
+try{ const m={name:"『話す中国語2』単語帳",short_name:"中国語2単語帳",start_url:".",display:"standalone",
+  background_color:"#f7f4ee",theme_color:"#f7f4ee"};
+  $("mf").href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:"application/manifest+json"}));}catch(e){}
+
+/* ---------- 保存 ---------- */
+const KEY="hanasu-chinese2-v1";
+async function save(){try{ const j=JSON.stringify(state);
+  if(window.storage) await window.storage.set(KEY,j,false); else localStorage.setItem(KEY,j);}catch(e){}}
+async function load(){try{ let v=null;
+  if(window.storage){const r=await window.storage.get(KEY,false); v=r&&r.value;} else v=localStorage.getItem(KEY);
+  if(v){const o=JSON.parse(v); state.p=o.p||{};state.d=o.d||{};state.rate=o.rate;}}catch(e){}}
+
+/* ---------- 音声 ---------- */
+let zhVoice=null;
+function pickVoice(){const vs=speechSynthesis.getVoices()||[];
+  zhVoice=vs.find(v=>/^zh[-_]CN/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;
+  $("novoice").style.display=(vs.length&&!zhVoice)?"block":"none";}
+if("speechSynthesis" in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+function say(t,btn){ if(!("speechSynthesis" in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(String(t).replace(/[（(].*?[）)]/g,"").replace(/[~～]/g,""));
+  u.lang="zh-CN"; if(zhVoice)u.voice=zhVoice; u.rate=+$("rate").value||.85;
+  if(btn){btn.classList.add("playing");u.onend=u.onerror=()=>btn.classList.remove("playing");}
+  speechSynthesis.speak(u);}
+
+/* ---------- ピンイン ---------- */
+const MK={a:"āáǎà",o:"ōóǒò",e:"ēéěè",i:"īíǐì",u:"ūúǔù",v:"ǖǘǚǜ"};
+function markTone(syl,t){
+  let s=syl;
+  if(!t) return s.replace(/v/g,"ü");
+  let v = s.includes("a")?"a" : s.includes("o")?"o" : s.includes("e")?"e" :
+          [...s].reverse().find(c=>"iuv".includes(c));
+  if(!v) return s.replace(/v/g,"ü");
+  const i=s.lastIndexOf(v);
+  return (s.slice(0,i)+MK[v][t-1]+s.slice(i+1)).replace(/v/g,"ü");
+}
+const M2N={};
+for(const b in MK)[...MK[b]].forEach((c,i)=>M2N[c]=b+(i+1));
+M2N["ü"]="v";M2N["ǹ"]="n4";M2N["ḿ"]="m2";
+function canon(s){return [...s.toLowerCase().replace(/[\s'’\-]/g,"")].map(c=>M2N[c]||c).join("").replace(/[05]/g,"");}
+const full = w => w.y ? w.y.map((s,i)=>markTone(s,w.t[i])).join("") : w.p;
+
+/* ---------- 課セレクト ---------- */
+const lessons=[...new Set(words.map(w=>w.L))].sort((a,b)=>a-b);
+const lo = lessons.map(l=>`<option value="${l}">${l}課</option>`).join("");
+$("lFrom").innerHTML=lo; $("lTo").innerHTML=lo;
+$("lFrom").value=lessons[0]; $("lTo").value=lessons[lessons.length-1];
+const lopt = `<option value="ALL">すべての課（${words.length}語）</option>`+
+  lessons.map(l=>`<option value="${l}">${l}課（${words.filter(w=>w.L===l).length}語）</option>`).join("");
+$("mLesson").innerHTML=lopt;
+$("gLesson").innerHTML=`<option value="ALL">すべての課</option>`+lessons.map(l=>`<option value="${l}">${l}課</option>`).join("");
+
+/* ---------- 出題プール ---------- */
+function inRange(w){const a=+$("lFrom").value,b=+$("lTo").value,l=+w.L;
+  return l>=Math.min(a,b)&&l<=Math.max(a,b);}
+function pool(){
+  let a=words.filter(inRange);
+  if(starOnly)a=a.filter(w=>rec(w.key).st==="s"||state.p[w.key]?.star);
+  if(diffOnly)a=a.filter(w=>w.d);
+  if($("mode").value==="tone")a=a.filter(w=>w.y&&w.t.some(t=>t>0));
+  if($("mode").value==="write")a=a.filter(w=>w.y);
+  return a;
+}
+function order(list){
+  const o=$("order").value;
+  const a=list.slice();
+  if(o==="weak")return a.filter(w=>rec(w.key).w>0).sort((x,y)=>rec(y.key).w-rec(x.key).w||rec(x.key).lv-rec(y.key).lv);
+  if(o==="shuffle"){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+  if(o==="lesson")return a;
+  // SRS：要復習（間違い回数の多い順）→ 未学習 → 覚えた（習熟度の低い順）
+  const rank=w=>{const r=rec(w.key);return r.st==="s"?0:(r.st?2:1);};
+  return a.map(w=>({w,r:rank(w),k:Math.random()})).sort((x,y)=>
+    x.r-y.r || (x.r===0? rec(y.w.key).w-rec(x.w.key).w : x.r===2? rec(x.w.key).lv-rec(y.w.key).lv : 0) || x.k-y.k
+  ).map(o=>o.w);
+}
+function build(){ deck=order(pool()); idx=0; flipped=false; ans=false; render(); }
+
+function progress(list){const k=list.filter(w=>rec(w.key).st==="k").length,
+  s=list.filter(w=>rec(w.key).st==="s").length;return{k,s,n:list.length-k-s,total:list.length};}
+function topBar(){const p=progress(tab==="study"?pool():words);
+  $("bK").style.width=p.total?(p.k/p.total*100)+"%":"0";
+  $("bS").style.width=p.total?(p.s/p.total*100)+"%":"0";
+  $("meter2").textContent=`覚えた ${p.k} ／ 要復習 ${p.s} ／ 未学習 ${p.n}`;}
+
+/* ---------- 字形 ---------- */
+function hz(w){ if(!hlOn||!w.d) return w.h;
+  const m=Object.fromEntries(w.d);
+  return [...w.h].map(c=>m[c]?`<span class="sd">${c}</span>`:c).join("");}
+function shapes(w){ if(!w.d)return"";
+  return `<div class="shapes">${w.d.map(([c,j])=>`<span class="chip">${c} → <b>${j}</b></span>`).join("")}</div>`;}
+
+/* ---------- 学習：状態更新 ---------- */
+function markOK(w){const r=rec(w.key);r.st="k";r.lv++;tick(0);save();}
+function markNG(w){const r=rec(w.key);r.st="s";r.lv=0;r.w++;tick(1);save();}
+
+/* ---------- カードモード ---------- */
+function renderCard(){
+  const c=$("card"); c.style.transform="";c.style.opacity="";
+  $("stampL").style.opacity=0;$("stampR").style.opacity=0;
+  if(!deck.length){$("front").innerHTML='<div class="mean">該当する単語がありません</div>';
+    $("back").classList.add("hidden");$("tag").textContent="";$("hint").textContent="";return;}
+  const w=deck[idx];
+  $("tag").textContent=w.L+"課";
+  $("star").classList.toggle("on",rec(w.key).st==="s");
+  const cn=$("dir").value==="cn";
+  if(cn){ $("front").innerHTML=`<div class="hanzi">${hz(w)}</div>`;
+    $("back").innerHTML=`<div class="pinyin">${w.p}</div><div class="pos">［${w.s}］</div><div class="mean">${w.m}</div>${shapes(w)}`;
+  }else{ $("front").innerHTML=`<div class="mean" style="font-size:26px">${w.m}</div><div class="pos">［${w.s}］</div>`;
+    $("back").innerHTML=`<div class="hanzi" style="font-size:46px">${hz(w)}</div><div class="pinyin">${w.p}</div>${shapes(w)}`;}
+  $("back").classList.toggle("hidden",!flipped);
+  $("hint").textContent=flipped?"":"タップでめくる ／ 左右スワイプで仕分け";
+  if(autoplay&&((cn&&!flipped)||(!cn&&flipped)))say(w.h,$("speak"));
+}
+function advance(){ if(idx<deck.length-1){idx++;flipped=false;ans=false;render();}
+  else{render();$("meter").textContent="このセットは終わりです 🎉";}}
+function know(){if(!deck.length)return;markOK(deck[idx]);advance();}
+function again(){if(!deck.length)return;markNG(deck[idx]);deck.push(deck[idx]);advance();}
+function fly(d,after){const c=$("card");c.classList.add("snap");
+  c.style.transform=`translateX(${d*window.innerWidth}px) rotate(${d*12}deg)`;c.style.opacity="0";
+  setTimeout(()=>{c.classList.remove("snap");after();},200);}
+let sx=0,sy=0,dx=0,drag=false,moved=false;
+const card=$("card");
+card.addEventListener("pointerdown",e=>{if(e.target.closest(".cardtools"))return;
+  drag=true;moved=false;sx=e.clientX;sy=e.clientY;dx=0;card.classList.remove("snap");});
+card.addEventListener("pointermove",e=>{if(!drag)return;
+  const a=e.clientX-sx,b=e.clientY-sy;
+  if(!moved&&Math.abs(a)<6&&Math.abs(b)<6)return;
+  if(!moved&&Math.abs(b)>Math.abs(a)){drag=false;return;}
+  moved=true;dx=a;card.style.transform=`translateX(${dx}px) rotate(${dx*.04}deg)`;
+  $("stampR").style.opacity=Math.max(0,Math.min(1,dx/70));
+  $("stampL").style.opacity=Math.max(0,Math.min(1,-dx/70));});
+function endDrag(){if(!drag)return;drag=false;
+  if(!moved){flipped=!flipped;renderCard();return;}
+  if(dx>80)fly(1,know); else if(dx<-80)fly(-1,again);
+  else{card.classList.add("snap");card.style.transform="";
+    $("stampL").style.opacity=0;$("stampR").style.opacity=0;
+    setTimeout(()=>card.classList.remove("snap"),220);}}
+["pointerup","pointercancel","pointerleave"].forEach(t=>card.addEventListener(t,endDrag));
+
+/* ---------- 声調テスト ---------- */
+let qOpts=[];
+function genOptions(t){
+  const idxs=t.map((v,i)=>v?i:-1).filter(i=>i>=0);
+  const key=a=>a.join(",");
+  const set=new Map([[key(t),t]]);
+  if(t.length===1){ for(const v of [1,2,3,4]) set.set(key([v]),[v]); }
+  else{ let g=0; while(set.size<4&&g++<200){ const a=t.slice();
+      idxs.forEach(i=>{a[i]=1+(Math.random()*4|0);});
+      if(key(a)!==key(t)||set.size===0) set.set(key(a),a); } }
+  const arr=[...set.values()];
+  for(let i=arr.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[arr[i],arr[j]]=[arr[j],arr[i]];}
+  return arr.slice(0,4);
+}
+function renderTone(){
+  const w=deck[idx]; if(!w)return;
+  $("qtag").textContent=w.L+"課";
+  $("qstar").classList.toggle("on",rec(w.key).st==="s");
+  $("qhanzi").innerHTML=hz(w);
+  $("qsub").textContent=w.y.join(" ");
+  $("qmean").textContent=w.m;
+  $("wInput").style.display="none";$("wtip").style.display="none";
+  $("qopts").style.display="";
+  qOpts=genOptions(w.t);
+  $("qopts").innerHTML=qOpts.map((t,i)=>
+    `<button data-i="${i}">${w.y.map((s,j)=>markTone(s,t[j])).join("")}</button>`).join("");
+  $("qfb").textContent="";$("qfb").className="fb";
+  ans=false;
+}
+$("qopts").onclick=e=>{
+  const b=e.target.closest("button"); if(!b||ans)return;
+  const w=deck[idx],t=qOpts[+b.dataset.i],ok=t.join()===w.t.join();
+  ans=true;
+  [...$("qopts").children].forEach((el,i)=>{
+    if(qOpts[i].join()===w.t.join())el.classList.add("ok");
+    else if(el===b)el.classList.add("ng");});
+  $("qfb").textContent=ok?"正解！ "+full(w):"正しくは "+full(w)+"（"+w.m+"）";
+  $("qfb").className="fb "+(ok?"ok":"ng");
+  ok?markOK(w):(markNG(w),deck.push(w));
+  say(w.h,$("qspeak")); topBar();
+  if(ok)setTimeout(()=>{if(ans)advance();},900);
+};
+
+/* ---------- 筆記モード ---------- */
+function renderWrite(){
+  const w=deck[idx]; if(!w)return;
+  $("qtag").textContent=w.L+"課";
+  $("qstar").classList.toggle("on",rec(w.key).st==="s");
+  $("qhanzi").innerHTML=hz(w);
+  $("qsub").textContent="";
+  $("qmean").textContent=w.m+"　［"+w.s+"］";
+  $("qopts").style.display="none";
+  $("wInput").style.display="";$("wtip").style.display="";
+  $("wInput").value="";$("wInput").disabled=false;
+  $("qfb").textContent="";$("qfb").className="fb";
+  ans=false; setTimeout(()=>$("wInput").focus(),50);
+}
+function checkWrite(){
+  const w=deck[idx]; if(!w||ans)return;
+  const inp=canon($("wInput").value).replace(/ü/g,"v");
+  if(!inp)return;
+  const expA=canon(full(w)).replace(/ü/g,"v");                       // 声調記号の位置に数字
+  const expB=w.y.map((s,i)=>s+(w.t[i]||"")).join("");                // 音節末に数字
+  const bare=s=>s.replace(/[0-9]/g,"").replace(/v/g,"u");
+  const uu=s=>s.replace(/v/g,"u");
+  const tonesOK = inp===expA||inp===expB||uu(inp)===uu(expA)||uu(inp)===uu(expB);
+  const spellOK = bare(inp)===bare(expB);
+  ans=true; $("wInput").disabled=true;
+  if(tonesOK){ $("qfb").textContent="正解！ "+full(w); $("qfb").className="fb ok"; markOK(w);
+    say(w.h,$("qspeak")); topBar(); setTimeout(()=>{if(ans)advance();},900); }
+  else if(spellOK){ $("qfb").innerHTML="綴りは正解、声調が違います → <b>"+full(w)+"</b>";
+    $("qfb").className="fb ng"; markNG(w); deck.push(w); say(w.h,$("qspeak")); topBar(); }
+  else{ $("qfb").innerHTML="正しくは <b>"+full(w)+"</b>"; $("qfb").className="fb ng";
+    markNG(w); deck.push(w); say(w.h,$("qspeak")); topBar(); }
+}
+$("wInput").addEventListener("keydown",e=>{ if(e.key!=="Enter")return;
+  e.preventDefault(); ans?advance():checkWrite(); });
+$("qskip").onclick=()=>{const w=deck[idx];if(!w)return;
+  if(!ans){ans=true;$("wInput").disabled=true;markNG(w);deck.push(w);
+    $("qfb").innerHTML="答え： <b>"+full(w)+"</b>　"+w.m;$("qfb").className="fb ng";
+    [...$("qopts").children].forEach((el,i)=>{if(qOpts[i]&&qOpts[i].join()===w.t.join())el.classList.add("ok");});
+    say(w.h,$("qspeak"));topBar();}
+  else advance();};
+$("qnext").onclick=()=>advance();
+$("qspeak").onclick=()=>{const w=deck[idx];if(w)say(w.h,$("qspeak"));};
+$("qstar").onclick=()=>{const w=deck[idx];if(!w)return;const r=rec(w.key);
+  r.st=r.st==="s"?"":"s";save();render();};
+
+/* ---------- 描画切替 ---------- */
+function render(){
+  topBar();
+  const m=$("mode").value;
+  $("meter").textContent=deck.length?`${idx+1} / ${deck.length}`:"0 / 0";
+  $("card").style.display=m==="card"?"":"none";
+  $("quiz").style.display=m==="card"?"none":"";
+  $("cardNav").style.display=m==="card"?"":"none";
+  $("quizNav").style.display=m==="card"?"none":"";
+  $("dir").style.display=m==="card"?"":"none";
+  if(!deck.length&&m!=="card"){
+    $("qhanzi").textContent="—";$("qsub").textContent="";$("qmean").textContent="該当する単語がありません";
+    $("qopts").innerHTML="";$("wInput").style.display="none";$("qfb").textContent="";return;}
+  if(m==="card")renderCard(); else if(m==="tone")renderTone(); else renderWrite();
+}
+$("speak").onclick=e=>{e.stopPropagation();const w=deck[idx];if(w)say(w.h,$("speak"));};
+$("star").onclick=e=>{e.stopPropagation();const w=deck[idx];if(!w)return;const r=rec(w.key);
+  r.st=r.st==="s"?"":"s";save();render();};
+$("prev").onclick=()=>{if(idx>0){idx--;flipped=false;ans=false;render();}};
+$("know").onclick=()=>fly(1,know);
+$("again").onclick=()=>fly(-1,again);
+$("mode").onchange=()=>{speechSynthesis.cancel();spStop();build();};
+$("order").onchange=build; $("lFrom").onchange=build; $("lTo").onchange=build;
+$("dir").onchange=()=>{flipped=false;render();};
+$("starOnly").onclick=e=>{starOnly=!starOnly;e.target.classList.toggle("on",starOnly);build();};
+$("diffOnly").onclick=e=>{diffOnly=!diffOnly;e.target.classList.toggle("on",diffOnly);build();};
+$("hl").onclick=e=>{hlOn=!hlOn;e.target.classList.toggle("on",hlOn);render();};
+$("autoplay").onclick=e=>{autoplay=!autoplay;e.target.classList.toggle("on",autoplay);};
+
+/* ---------- 文法 ---------- */
+function renderGram(){
+  const v=$("gLesson").value;
+  const list=GRAMMAR.filter(g=>v==="ALL"||g.L===v);
+  $("gramList").innerHTML=list.map((g,i)=>`<div class="gcard">
+    <h3><span class="gl">${g.L}課</span>${g.t}</h3><p>${g.b}</p>
+    ${(g.ex||[]).map(e=>`<div class="gex"><div class="t"><div class="c">${e[0]}</div>
+      <div class="y">${e[1]}</div><div class="j">${e[2]}</div></div>
+      <button class="icon spk" data-say="${e[0]}">🔊</button></div>`).join("")}
+  </div>`).join("");
+  $("meter").textContent=list.length+" 項目";
+}
+$("gramList").onclick=e=>{const s=e.target.closest("[data-say]");if(s)say(s.dataset.say,s);};
+$("gLesson").onchange=renderGram;
+
+/* ---------- 一覧 ---------- */
+function renderMenu(){renderDash();
+  const p=progress(words);
+  $("sK").textContent=p.k;$("sS").textContent=p.s;$("sN").textContent=p.n;
+  $("lessonList").innerHTML=lessons.map(l=>{const q=progress(words.filter(w=>w.L===l));
+    return `<div class="lrow" data-lesson="${l}"><span class="name">${l}課</span>
+      <span class="bar"><i class="g" style="width:${q.k/q.total*100}%"></i><i class="a" style="width:${q.s/q.total*100}%"></i></span>
+      <span class="pct">${q.k}/${q.total}</span></div>`;}).join("");
+  let list=words.slice();
+  const lv=$("mLesson").value; if(lv!=="ALL")list=list.filter(w=>w.L===lv);
+  const f=$("mFilter").value;
+  if(f==="k")list=list.filter(w=>rec(w.key).st==="k");
+  else if(f==="s"||f==="star")list=list.filter(w=>rec(w.key).st==="s");
+  else if(f==="n")list=list.filter(w=>!rec(w.key).st);
+  else if(f==="diff")list=list.filter(w=>w.d);
+  const raw=$("search").value.trim(), q=plain(raw);
+  if(raw)list=list.filter(w=>w.h.includes(raw)||plain(w.p).includes(q)||w.m.includes(raw));
+  if($("mSort").value==="pinyin")list.sort((a,b)=>plain(a.p).localeCompare(plain(b.p)));
+  $("wordList").innerHTML=list.length?list.map(w=>{
+    const st=rec(w.key).st;
+    const sh=w.d?`　<em>${w.d.map(d=>d[0]+"→"+d[1]).join("・")}</em>`:"";
+    return `<div class="wrow"><span class="dot ${st}"></span>
+      <span class="wmain" data-jump="${w.id}"><span class="wtop">
+        <span class="h">${hz(w)}</span><span class="p">${w.p}</span>
+        <span class="l">${w.L}課</span><span class="ps">［${w.s}］</span></span>
+        <span class="wsub">${w.m}${sh}</span></span>
+      <button class="icon spk" data-say="${w.h}">🔊</button>
+      <button class="icon ${st==="s"?"on":""}" data-star="${w.key}">★</button></div>`;}).join("")
+    :'<div class="wrow" style="color:var(--ink-soft);font-size:13px">該当なし</div>';
+  topBar();
+}
+$("wordList").onclick=e=>{
+  const s=e.target.closest("[data-say]"); if(s){say(s.dataset.say,s);return;}
+  const st=e.target.closest("[data-star]");
+  if(st){const r=rec(st.dataset.star);r.st=r.st==="s"?"":"s";save();renderMenu();return;}
+  const j=e.target.closest("[data-jump]"); if(j)jumpTo(+j.dataset.jump);};
+$("lessonList").onclick=e=>{const r=e.target.closest("[data-lesson]");if(!r)return;
+  $("lFrom").value=r.dataset.lesson;$("lTo").value=r.dataset.lesson;
+  starOnly=diffOnly=false;$("starOnly").classList.remove("on");$("diffOnly").classList.remove("on");
+  setTab("study");build();};
+function jumpTo(id){const w=words.find(x=>x.id===id);
+  $("mode").value="card";$("lFrom").value=w.L;$("lTo").value=w.L;
+  starOnly=diffOnly=false;$("starOnly").classList.remove("on");$("diffOnly").classList.remove("on");
+  setTab("study");build();
+  const i=deck.findIndex(x=>x.id===id); if(i>=0){idx=i;flipped=false;render();}}
+["mFilter","mSort","mLesson"].forEach(i=>$(i).onchange=renderMenu);
+$("search").oninput=renderMenu;
+$("reset").onclick=()=>{if(!confirm("学習状況をすべて消します。よろしいですか？"))return;
+  state.p={};save();renderMenu();};
+
+/* ---------- タブ ---------- */
+function setTab(t){
+  tab=t; speechSynthesis.cancel(); spStop();
+  $("tabStudy").classList.toggle("on",t==="study");
+  $("tabGram").classList.toggle("on",t==="gram");
+  $("tabMenu").classList.toggle("on",t==="menu");
+  $("studyview").style.display=t==="study"?"":"none";
+  $("gramview").style.display=t==="gram"?"":"none";
+  $("menuview").style.display=t==="menu"?"":"none";
+  $("studyCtl").style.display=t==="study"?"":"none";
+  $("gramCtl").style.display=t==="gram"?"":"none";
+  if(t==="study")render(); else if(t==="gram")renderGram(); else renderMenu();
+}
+$("tabStudy").onclick=()=>setTab("study");
+$("tabGram").onclick=()=>setTab("gram");
+$("tabMenu").onclick=()=>setTab("menu");
+document.addEventListener("keydown",e=>{
+  if(tab!=="study")return;
+  if(document.activeElement===$("wInput"))return;
+  const m=$("mode").value;
+  if(e.key===" "&&m==="card"){e.preventDefault();flipped=!flipped;renderCard();}
+  if(e.key==="ArrowRight")m==="card"?$("know").click():advance();
+  if(e.key==="ArrowLeft"&&m==="card")$("again").click();
+  if(m==="tone"&&/^[1-4]$/.test(e.key)){const b=$("qopts").children[+e.key-1];if(b)b.click();}
+  if(e.key.toLowerCase()==="s"){const w=deck[idx];if(w)say(w.h,$("speak"));}});
+const ymd=o=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4-o*864e5).toISOString().slice(0,10);
+function tick(n){(state.d[ymd(0)]||=[0,0])[n]++;}
+function renderDash(){
+  const sum=k=>(state.d[k]||[0,0]).reduce((a,b)=>a+b);
+  const v=[6,5,4,3,2,1,0].map(o=>sum(ymd(o))),mx=Math.max(1,...v);
+  let st=0,i=sum(ymd(0))?0:1; while(sum(ymd(i))){st++;i++;}
+  const t=Object.values(state.d).reduce((a,b)=>[a[0]+b[0],a[1]+b[1]],[0,0]);
+  const rate=t[0]+t[1]?Math.round(t[0]/(t[0]+t[1])*100):0;
+  const weak=words.filter(w=>rec(w.key).w>0).sort((a,b)=>rec(b.key).w-rec(a.key).w).slice(0,5);
+  $("dash").innerHTML=`<h2>学習統計</h2><div class="summary">
+   <div class="stat"><b>${v[6]}</b><span>今日の回答数</span></div>
+   <div class="stat"><b>${st}</b><span>連続日数</span></div>
+   <div class="stat g"><b>${rate}%</b><span>累計正答率</span></div></div>
+   <div style="display:flex;align-items:flex-end;gap:6px;height:70px;margin-top:12px">${v.map((n,j)=>`<div style="flex:1;text-align:center;font-size:10px;color:var(--ink-soft)"><div style="background:var(--jade);height:${Math.max(2,n/mx*50)}px;border-radius:3px"></div>${new Date(Date.now()-(6-j)*864e5).getDate()}</div>`).join("")}</div>
+   ${weak.length?"<h2>弱点TOP5（間違い回数）</h2>"+weak.map(w=>`<div class="wrow"><span class="wmain"><span class="wtop"><span class="h">${w.h}</span><span class="p">${w.p}</span><span class="ps">×${rec(w.key).w}</span></span><span class="wsub">${w.m}</span></span></div>`).join(""):""}`;
+}
+let spT=null;
+function spStop(){clearTimeout(spT);spT=null;const b=$("speedBtn");b.classList.remove("on");b.textContent="▶ スピード";}
+function spStep(){ if(!spT)return; const d=+$("spd").value*1000;
+  if(!flipped){flipped=true;render();spT=setTimeout(spStep,d);}
+  else if(idx<deck.length-1){idx++;flipped=false;render();spT=setTimeout(spStep,d*.6);}
+  else spStop(); }
+$("speedBtn").onclick=()=>{ if(spT){spStop();return;}
+  if($("mode").value!=="card"){$("mode").value="card";build();}
+  const b=$("speedBtn");b.classList.add("on");b.textContent="■ 停止";flipped=false;render();spT=setTimeout(spStep,+$("spd").value*1000);};
+$("rate").onchange=()=>{state.rate=$("rate").value;save();const w=deck[idx];if(w)say(w.h,$("speak"));};
+load().then(()=>{if(state.rate)$("rate").value=state.rate;build();});
+</script>
+</body>
+</html>
